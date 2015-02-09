@@ -1,0 +1,7753 @@
+<!DOCTYPE html>
+<!-- saved from url=(0103)http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html -->
+<html class=" js flexbox no-touch" xmlns="http://www.w3.org/1999/xhtml" xmlns:fb="http://ogp.me/ns/fb#" style=""><!--<![endif]--><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><script type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/optout_check"></script><script async="" src="./Add dynamic Java code to your application   JavaWorld_files/controltag.js.d763e2f4c6fecc1729f3f818a241f472"></script><style type="text/css">.ftscroller_scrolling { -webkit-user-select: none; cursor: all-scroll !important }
+.ftscroller_container { overflow: hidden; position: relative; max-height: 100%; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -ms-touch-action: none }
+.ftscroller_hwaccelerated { -webkit-transform: translateZ(0); }
+.ftscroller_x, .ftscroller_y { position: relative; min-width: 100%; min-height: 100%; overflow: hidden }
+.ftscroller_x { display: inline-block }
+.ftscroller_scrollbar { pointer-events: none; position: absolute; width: 5px; height: 5px; border: 1px solid rgba(255, 255, 255, 0.15); -webkit-border-radius: 3px; border-radius: 6px; opacity: 0; -webkit-transition: opacity 350ms; z-index: 10 }
+.ftscroller_scrollbarx { bottom: 2px; left: 2px }
+.ftscroller_scrollbary { right: 2px; top: 2px }
+.ftscroller_scrollbarinner { height: 100%; background: rgba(0,0,0,0.5); -webkit-border-radius: 2px; border-radius: 4px / 6px }
+.ftscroller_scrolling .ftscroller_scrollbar { opacity: 1; -webkit-transition: none; -o-transition: all 0 none }
+.ftscroller_scrolling .ftscroller_container .ftscroller_scrollbar { opacity: 0 }</style>
+	
+	<!-- metas -->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+			
+	<title>Add dynamic Java code to your application | JavaWorld</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+		
+			<link rel="canonical" href="http://www.javaworld.com/javaworld/jw-06-2006/jw-0612-dynamic.html">			
+		
+		
+		
+	
+
+	<meta itemprop="url" content="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html">
+	<meta name="description" content="Did you ever wish your Java code could be dynamic like JavaServer
+Pages? That it could be modified and recompiled at runtime, with
+your application updating itself on the fly? This article shows you
+how to make your code dynamic. As such, some of your source code
+will be deployed, instead of compiled binary code. Any changes to
+the source code will cause it to be recompiled and the class to be
+reloaded. Your application will then run on the new class, and
+users will see the change immediately. This article covers not only
+runtime source compilation and class reloading, but also a design
+that separates the dynamic code from its caller. The caller holds a
+static reference to the dynamic code, and no matter how the dynamic
+code reloads at runtime, the caller can always access the
+up-to-date class without updating the reference. In this way,
+dynamic code changes are transparent to the client.">
+	
+	
+	
+		
+		
+		<meta name="DC.date.issued" content="2006-06-12T01:00-05:00">
+		
+		
+	
+
+	
+	
+	<meta property="og:title" content="Add dynamic Java code to your application">
+	
+	
+		
+		
+			<meta property="og:image" content="http://www.javaworld.com/www.idge.jvw/images/JVW_logo_300x300.png">
+			<meta itemprop="image" content="http://www.javaworld.com/www.idge.jvw/images/JVW_logo_300x300.png">
+			<meta itemprop="thumbnailURl" content="http://www.javaworld.com/www.idge.jvw/images/JVW_logo_300x300.png">
+			<link rel="image_src" href="http://www.javaworld.com/www.idge.jvw/images/JVW_logo_300x300.png">
+			<meta name="twitter:image" content="http://www.javaworld.com/www.idge.jvw/images/JVW_logo_300x300.png">
+		
+	
+	
+		
+			<meta property="og:type" content="article">
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			<meta name="author" content="Li Yang">
+			
+			
+			
+			
+			
+		
+		
+		
+	<meta property="og:site_name" content="JavaWorld">
+	<meta property="fb:app_id" content="196366870381968">
+	
+		
+			<meta property="og:url" content="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html">
+			<meta name="twitter:url" content="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html">
+			
+			
+			
+		
+		
+		
+	
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:site" content="javaworldcom">
+	
+		<meta property="og:description" content="Did you ever wish your Java code could be dynamic like JavaServer
+Pages? That it could be modified and recompiled at runtime, with
+your application updating itself on the fly? This article shows you
+how to make your code dynamic. As such, some of your source code
+will be deployed, instead of compiled binary code. Any changes to
+the source code will cause it to be recompiled and the class to be
+reloaded. Your application will then run on the new class, and
+users will see the change immediately. This article covers not only
+runtime source compilation and class reloading, but also a design
+that separates the dynamic code from its caller. The caller holds a
+static reference to the dynamic code, and no matter how the dynamic
+code reloads at runtime, the caller can always access the
+up-to-date class without updating the reference. In this way,
+dynamic code changes are transparent to the client.">
+		<meta name="twitter:description" content="Did you ever wish your Java code could be dynamic like JavaServer
+Pages? That it could be modified and recompiled at runtime, with
+your application updating itself on the fly? This article shows you
+how to make your code dynamic. As such, some of your source code
+will be deployed, instead of compiled binary code. Any changes to
+the source code will cause it to be recompiled and the class to be
+reloaded. Your application will then run on the new class, and
+users will see the change immediately. This article covers not only
+runtime source compilation and class reloading, but also a design
+that separates the dynamic code from its caller. The caller holds a
+static reference to the dynamic code, and no matter how the dynamic
+code reloads at runtime, the caller can always access the
+up-to-date class without updating the reference. In this way,
+dynamic code changes are transparent to the client.">
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<meta name="rating" content="General">
+	
+	<meta name="robots" content="NOODP,NOYDIR">
+	
+	<!-- pagination -->
+	
+	
+	<link rel="next" href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html?page=2">
+	
+	
+	<!-- css -->
+	<link rel="stylesheet" href="http://www.javaworld.com/www.idge/css/normalize.css?v=20140908063348">
+	<link rel="stylesheet" href="http://www.javaworld.com/www.idge/css/prettify.css?v=20140908063348">
+	
+		<link rel="stylesheet" href="http://www.javaworld.com/www.idge/css/sitewrapper.css?v=20140908063348">
+		
+		<link rel="stylesheet" href="http://www.javaworld.com/www.idge/css/article.css?v=20140908063348">
+		
+		<link rel="stylesheet" href="http://www.javaworld.com/www.idge/css/print.css?v=20140908063348">
+		
+	
+	
+		<link rel="stylesheet" href="http://www.javaworld.com/www.idge.jvw/css/sitewrapper.css?v=20140908063348">
+		
+		<link rel="stylesheet" href="http://www.javaworld.com/www.idge.jvw/css/article.css?v=20140908063348">
+		
+	
+	
+	<link rel="stylesheet" href="http://www.javaworld.com/www.idge/css/webfonts/ss-social.css?v=20140908063348">
+	<link rel="stylesheet" href="http://www.javaworld.com/www.idge/css/webfonts/ss-standard.css?v=20140908063348">
+	<!--[if lte IE 8]>  
+		<link href="/www.idge/css/webfonts/ss-ie8.css" rel="stylesheet" />
+	<![endif]--> 
+	
+		<link href="http://fonts.googleapis.com/css?family=PT+Sans:400,700|PT+Sans+Narrow:400,700" rel="stylesheet" type="text/css">
+	
+		
+	
+	<link rel="stylesheet" href="http://www.javaworld.com/www.idge/css/search-style.css?v=20140908063348">
+	
+	<!--  fav and touch icons -->
+	<link rel="shortcut icon" type="image/x-icon" href="http://www.javaworld.com/www.idge.jvw/favicon.ico">
+	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="http://www.javaworld.com/www.idge.jvw/touchicon_144.gif">
+	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="http://www.javaworld.com/www.idge.jvw/touchicon_114.gif">
+	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="http://www.javaworld.com/www.idge.jvw/touchicon_72.gif">
+	<link rel="apple-touch-icon-precomposed" sizes="57x57" href="http://www.javaworld.com/www.idge.jvw/touchicon_57.gif">
+	<link rel="apple-touch-icon" href="http://www.javaworld.com/www.idge.jvw/images/JVW_logo_300x300.png">
+
+	<!-- js -->
+	<script type="text/javascript" async="" src="./Add dynamic Java code to your application   JavaWorld_files/controltag"></script><script async="" src="./Add dynamic Java code to your application   JavaWorld_files/beacon.js"></script><script type="text/javascript" async="" src="./Add dynamic Java code to your application   JavaWorld_files/ga.js"></script><script type="text/javascript" async="" src="./Add dynamic Java code to your application   JavaWorld_files/widgets.js"></script><script async="" type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/gpt.js"></script><script type="text/javascript">var _sf_startpt=(new Date()).getTime();</script>
+	
+		
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/gpt_includes.js"></script>
+<script type="text/javascript">
+	// ad unit name
+	IDG.GPT.unitName = "/8456/IDG.Javaworld_Enterprise";
+	
+
+	
+
+	// global variables
+	var global_ShowSuper = true;
+	var global_ShowHero = false;
+	var global_PremiumAdOptStatus = false;
+	
+	//XFP global targeting, more targeting demandbase and thm_pre
+	IDG.GPT.addTarget("URL", encodeURIComponent(window.location));
+	IDG.GPT.addTarget("site", 'idge.jw.home');
+	IDG.GPT.addTarget("zone", 'article/design-patterns');
+	IDG.GPT.addTarget("dart.site.video", '');IDG.GPT.addTarget("articleId", '2071777');IDG.GPT.addTarget("type", 'news');IDG.GPT.addTarget("typeId", '2');IDG.GPT.addTarget("manufacturer", 'ibm');IDG.GPT.addTarget("templateType", 'article-default');
+	IDG.GPT.addTarget("categoryIds", [3188,3237,3219]);
+	IDG.GPT.addTarget("categorySlugs", ['design-patterns','java-app-dev','enterprise-java']);
+	
+	IDG.GPT.addTarget("author", 'Li Yang');
+	
+	
+	IDG.GPT.addTarget("page_type", 'article');
+	
+	
+	IDG.GPT.addTarget("tagNames", 'Java');
+	
+	
+</script>
+
+<script type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/demandbase.js"></script>
+<script type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/ip.json"></script>
+
+<script src="./Add dynamic Java code to your application   JavaWorld_files/thm_pre.js"></script>
+<script type="text/javascript">
+	IDG.GPT.setIDGExtraTargetings();
+	IDG.GPT.setAllGoogleTagTargetings();
+	
+	IDG.GPT.defineAllGoogleTagSlots();
+	IDG.GPT.initGoogleTagService();
+</script>
+
+
+	
+	<script src="./Add dynamic Java code to your application   JavaWorld_files/swfobject.js"></script>
+	
+	
+	<script src="./Add dynamic Java code to your application   JavaWorld_files/jquery-1.10.2.min.js"></script>
+	<script src="./Add dynamic Java code to your application   JavaWorld_files/swfobject.js"></script>
+	
+	<script language="JavaScript" type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/BrightcoveExperiences.js"></script>
+	
+	<!-- All JavaScript at the bottom, except for Modernizr which enables HTML5 elements & feature detects -->
+	<script src="./Add dynamic Java code to your application   JavaWorld_files/modernizr.js"></script>
+	<script src="./Add dynamic Java code to your application   JavaWorld_files/respond.min.js"></script>
+	
+
+
+
+
+
+
+
+
+
+
+<!-- Begin Eloqua Tracking -->
+<script type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/elqCfg.js"></script>
+<script type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/elqImg.js"></script><script async="" type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/pubads_impl_48.js"></script><script type="text/javascript" async="" src="./Add dynamic Java code to your application   JavaWorld_files/embed.js"></script><script type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/osd.js"></script><script src="./Add dynamic Java code to your application   JavaWorld_files/secureAnonymousFramework"></script><style type="text/css">* html #li_ui_li_gen_1410416356513_0 a#li_ui_li_gen_1410416356513_0-link{height:1% !important;}#li_ui_li_gen_1410416356513_0{position:relative !important;overflow:visible !important;display:block !important;}#li_ui_li_gen_1410416356513_0 span{-webkit-box-sizing:content-box !important;-moz-box-sizing:content-box !important;box-sizing:content-box !important;}#li_ui_li_gen_1410416356513_0 a#li_ui_li_gen_1410416356513_0-link{border:0 !important;height:20px !important;text-decoration:none !important;padding:0 !important;margin:0 !important;display:inline-block !important;}#li_ui_li_gen_1410416356513_0 a#li_ui_li_gen_1410416356513_0-link:link, #li_ui_li_gen_1410416356513_0 a#li_ui_li_gen_1410416356513_0-link:visited, #li_ui_li_gen_1410416356513_0 a#li_ui_li_gen_1410416356513_0-link:hover, #li_ui_li_gen_1410416356513_0 a#li_ui_li_gen_1410416356513_0-link:active{border:0 !important;text-decoration:none !important;}#li_ui_li_gen_1410416356513_0 a#li_ui_li_gen_1410416356513_0-link:after{content:"." !important;display:block !important;clear:both !important;visibility:hidden !important;line-height:0 !important;height:0 !important;}#li_ui_li_gen_1410416356513_0 #li_ui_li_gen_1410416356513_0-logo{background-image:url(https://static.licdn.com/scds/common/u/images/apps/connect/sprites/sprite_connect_v14.png) !important;background-position:0px -276px !important;background-repeat:no-repeat !important;background-size:initial !important;cursor:pointer !important;border:0 !important;text-indent:-9999em !important;overflow:hidden !important;padding:0 !important;margin:0 !important;position:absolute !important;left:0px !important;top:0px !important;display:block !important;width:20px !important;height:20px !important;float:right !important;border-radius:0 !important;-webkit-border-radius:0 !important;border-top-right-radius:2px !important;border-bottom-right-radius:2px !important;-webkit-border-top-right-radius:2px !important;-webkit-border-bottom-right-radius:2px !important;}#li_ui_li_gen_1410416356513_0.hovered #li_ui_li_gen_1410416356513_0-logo{background-position:-20px -276px !important;}#li_ui_li_gen_1410416356513_0.clicked #li_ui_li_gen_1410416356513_0-logo, #li_ui_li_gen_1410416356513_0.down #li_ui_li_gen_1410416356513_0-logo{background-position:-40px -276px !important;}.IN-shadowed #li_ui_li_gen_1410416356513_0 #li_ui_li_gen_1410416356513_0-logo{}#li_ui_li_gen_1410416356513_0 #li_ui_li_gen_1410416356513_0-title{color:#333 !important;cursor:pointer !important;display:block !important;white-space:nowrap !important;float:left !important;margin-left:1px !important;vertical-align:top !important;overflow:hidden !important;text-align:center !important;height:18px !important;padding:0 4px 0 23px !important;border:1px solid #000 !important;border-top-color:#E2E2E2 !important;border-right-color:#BFBFBF !important;border-bottom-color:#B9B9B9 !important;border-left-color:#E2E2E2 !important;border-left:0 !important;text-shadow:#FFFFFF -1px 1px 0 !important;line-height:20px !important;border-radius:0 !important;-webkit-border-radius:0 !important;border-top-right-radius:2px !important;border-bottom-right-radius:2px !important;-webkit-border-top-right-radius:2px !important;-webkit-border-bottom-right-radius:2px !important;background-color:#ECECEC !important;background-image:-webkit-gradient(linear, left top, left bottom, color-stop(0%,#FEFEFE), color-stop(100%,#ECECEC)) !important; background-image: -webkit-linear-gradient(top, #FEFEFE 0%, #ECECEC 100%) !important;}#li_ui_li_gen_1410416356513_0.hovered #li_ui_li_gen_1410416356513_0-title{border:1px solid #000 !important;border-top-color:#ABABAB !important;border-right-color:#9A9A9A !important;border-bottom-color:#787878 !important;border-left-color:#04568B !important;border-left:0 !important;background-color:#EDEDED !important;background-image:-webkit-gradient(linear, left top, left bottom, color-stop(0%,#EDEDED), color-stop(100%,#DEDEDE)) !important; background-image: -webkit-linear-gradient(top, #EDEDED 0%, #DEDEDE 100%) !important;}#li_ui_li_gen_1410416356513_0.clicked #li_ui_li_gen_1410416356513_0-title, #li_ui_li_gen_1410416356513_0.down #li_ui_li_gen_1410416356513_0-title{color:#666 !important;border:1px solid #000 !important;border-top-color:#B6B6B6 !important;border-right-color:#B3B3B3 !important;border-bottom-color:#9D9D9D !important;border-left-color:#49627B !important;border-left:0 !important;background-color:#DEDEDE !important;background-image:-webkit-gradient(linear, left top, left bottom, color-stop(0%,#E3E3E3), color-stop(100%,#EDEDED)) !important; background-image: -webkit-linear-gradient(top, #E3E3E3 0%, #EDEDED 100%) !important;}.IN-shadowed #li_ui_li_gen_1410416356513_0 #li_ui_li_gen_1410416356513_0-title{}.IN-shadowed #li_ui_li_gen_1410416356513_0.hovered #li_ui_li_gen_1410416356513_0-title{}.IN-shadowed #li_ui_li_gen_1410416356513_0.clicked #li_ui_li_gen_1410416356513_0-title, .IN-shadowed #li_ui_li_gen_1410416356513_0.down #li_ui_li_gen_1410416356513_0-title{}#li_ui_li_gen_1410416356513_0 #li_ui_li_gen_1410416356513_0-title-text, #li_ui_li_gen_1410416356513_0 #li_ui_li_gen_1410416356513_0-title-text *{color:#333 !important;font-size:11px !important;font-family:Arial, sans-serif !important;font-weight:bold !important;font-style:normal !important;-webkit-font-smoothing:antialiased !important;display:inline-block !important;background:transparent none !important;vertical-align:top !important;height:18px !important;line-height:20px !important;float:none !important;}#li_ui_li_gen_1410416356513_0 #li_ui_li_gen_1410416356513_0-title-text strong{font-weight:bold !important;}#li_ui_li_gen_1410416356513_0 #li_ui_li_gen_1410416356513_0-title-text em{font-style:italic !important;}#li_ui_li_gen_1410416356513_0.hovered #li_ui_li_gen_1410416356513_0-title-text, #li_ui_li_gen_1410416356513_0.hovered #li_ui_li_gen_1410416356513_0-title-text *{color:#000 !important;}#li_ui_li_gen_1410416356513_0.clicked #li_ui_li_gen_1410416356513_0-title-text, #li_ui_li_gen_1410416356513_0.down #li_ui_li_gen_1410416356513_0-title-text, #li_ui_li_gen_1410416356513_0.clicked #li_ui_li_gen_1410416356513_0-title-text *, #li_ui_li_gen_1410416356513_0.down #li_ui_li_gen_1410416356513_0-title-text *{color:#666 !important;}#li_ui_li_gen_1410416356513_0 #li_ui_li_gen_1410416356513_0-title #li_ui_li_gen_1410416356513_0-mark{display:inline-block !important;width:0px !important;overflow:hidden !important;}.success #li_ui_li_gen_1410416356513_0 #li_ui_li_gen_1410416356513_0-title{color:#333 !important;border-top-color:#E2E2E2 !important;border-right-color:#BFBFBF !important;border-bottom-color:#B9B9B9 !important;border-left-color:#E2E2E2 !important;background-color:#ECECEC !important;background-image:-webkit-gradient(linear, left top, left bottom, color-stop(0%,#FEFEFE), color-stop(100%,#ECECEC)) !important; background-image: -webkit-linear-gradient(top, #FEFEFE 0%, #ECECEC 100%) !important;}.success #li_ui_li_gen_1410416356513_0 #li_ui_li_gen_1410416356513_0-title-text, .success #li_ui_li_gen_1410416356513_0 #li_ui_li_gen_1410416356513_0-title-text *{color:#333 !important;}.IN-shadowed .success #li_ui_li_gen_1410416356513_0 #li_ui_li_gen_1410416356513_0-title{}.success #li_ui_li_gen_1410416356513_0.hovered #li_ui_li_gen_1410416356513_0-title{color:#000 !important;border-top-color:#ABABAB !important;border-right-color:#9A9A9A !important;border-bottom-color:#787878 !important;border-left-color:#04568B !important;background-color:#EDEDED !important;background-image:-webkit-gradient(linear, left top, left bottom, color-stop(0%,#EDEDED), color-stop(100%,#DEDEDE)) !important; background-image: -webkit-linear-gradient(top, #EDEDED 0%, #DEDEDE 100%) !important;}.success #li_ui_li_gen_1410416356513_0.hovered #li_ui_li_gen_1410416356513_0-title-text, .success #li_ui_li_gen_1410416356513_0.hovered #li_ui_li_gen_1410416356513_0-title-text *{color:#000 !important;}.success #li_ui_li_gen_1410416356513_0.clicked #li_ui_li_gen_1410416356513_0-title, .success #li_ui_li_gen_1410416356513_0.down #li_ui_li_gen_1410416356513_0-title{color:#666 !important;border-top-color:#B6B6B6 !important;border-right-color:#B3B3B3 !important;border-bottom-color:#9D9D9D !important;border-left-color:#49627B !important;background-color:#DEDEDE !important;background-image:-webkit-gradient(linear, left top, left bottom, color-stop(0%,#E3E3E3), color-stop(100%,#EDEDED)) !important; background-image: -webkit-linear-gradient(top, #E3E3E3 0%, #EDEDED 100%) !important;}.success #li_ui_li_gen_1410416356513_0.clicked #li_ui_li_gen_1410416356513_0-title-text, .success #li_ui_li_gen_1410416356513_0.down #li_ui_li_gen_1410416356513_0-title-text, .success #li_ui_li_gen_1410416356513_0.clicked #li_ui_li_gen_1410416356513_0-title-text *, .success #li_ui_li_gen_1410416356513_0.down #li_ui_li_gen_1410416356513_0-title-text *{color:#666 !important;}.IN-shadowed .success #li_ui_li_gen_1410416356513_0.clicked #li_ui_li_gen_1410416356513_0-title, .IN-shadowed .success #li_ui_li_gen_1410416356513_0.down #li_ui_li_gen_1410416356513_0-title{}#li_ui_li_gen_1410416356562_1-container.IN-top {display:inline-block !important;overflow:visible !important;position:relative !important;height:42px !important;line-height:1px !important;cursor:pointer !important;}#li_ui_li_gen_1410416356562_1.IN-top {display:inline-block !important;height:42px !important;width:57px !important;text-align:center !important;background-image:url(https://static.licdn.com/scds/common/u/images/apps/connect/sprites/sprite_connect_v14.png) !important;background-color:transparent !important;background-repeat:no-repeat !important;background-position:-150px top !important;}#li_ui_li_gen_1410416356562_1-content.IN-top {display:inline !important;font-size:16px !important;color:#04558B !important;font-weight:bold !important;font-family:Arial, sans-serif !important;line-height:38px !important;}#li_ui_li_gen_1410416356562_1-container.IN-empty #li_ui_li_gen_1410416356562_1-inner.IN-top {background-image:url(https://static.licdn.com/scds/common/u/images/apps/connect/sprites/sprite_connect_v14.png) !important;background-color:transparent !important;background-repeat:no-repeat !important;background-position:0px -20px !important;overflow:hidden !important;margin:5px auto 0 auto !important;width:26px !important;height:26px !important;display:block !important;}#li_ui_li_gen_1410416356562_1-container.IN-empty #li_ui_li_gen_1410416356562_1-content.IN-top {text-indent:-999px !important;display:inline-block !important;}#li_ui_li_gen_1410416356562_1-container.IN-hidden #li_ui_li_gen_1410416356562_1 {display:none !important;}</style><style type="text/css">.fb_hidden{position:absolute;top:-10000px;z-index:10001}.fb_invisible{display:none}.fb_reset{background:none;border:0;border-spacing:0;color:#000;cursor:auto;direction:ltr;font-family:"lucida grande", tahoma, verdana, arial, sans-serif;font-size:11px;font-style:normal;font-variant:normal;font-weight:normal;letter-spacing:normal;line-height:1;margin:0;overflow:visible;padding:0;text-align:left;text-decoration:none;text-indent:0;text-shadow:none;text-transform:none;visibility:visible;white-space:normal;word-spacing:normal}.fb_reset>div{overflow:hidden}.fb_link img{border:none}
+.fb_dialog{background:rgba(82, 82, 82, .7);position:absolute;top:-10000px;z-index:10001}.fb_reset .fb_dialog_legacy{overflow:visible}.fb_dialog_advanced{padding:10px;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px}.fb_dialog_content{background:#fff;color:#333}.fb_dialog_close_icon{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 0 transparent;_background-image:url(http://static.ak.fbcdn.net/rsrc.php/v2/yL/r/s816eWC-2sl.gif);cursor:pointer;display:block;height:15px;position:absolute;right:18px;top:17px;width:15px}.fb_dialog_mobile .fb_dialog_close_icon{top:5px;left:5px;right:auto}.fb_dialog_padding{background-color:transparent;position:absolute;width:1px;z-index:-1}.fb_dialog_close_icon:hover{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 -15px transparent;_background-image:url(http://static.ak.fbcdn.net/rsrc.php/v2/yL/r/s816eWC-2sl.gif)}.fb_dialog_close_icon:active{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 -30px transparent;_background-image:url(http://static.ak.fbcdn.net/rsrc.php/v2/yL/r/s816eWC-2sl.gif)}.fb_dialog_loader{background-color:#f2f2f2;border:1px solid #606060;font-size:24px;padding:20px}.fb_dialog_top_left,.fb_dialog_top_right,.fb_dialog_bottom_left,.fb_dialog_bottom_right{height:10px;width:10px;overflow:hidden;position:absolute}.fb_dialog_top_left{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/ye/r/8YeTNIlTZjm.png) no-repeat 0 0;left:-10px;top:-10px}.fb_dialog_top_right{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/ye/r/8YeTNIlTZjm.png) no-repeat 0 -10px;right:-10px;top:-10px}.fb_dialog_bottom_left{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/ye/r/8YeTNIlTZjm.png) no-repeat 0 -20px;bottom:-10px;left:-10px}.fb_dialog_bottom_right{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/ye/r/8YeTNIlTZjm.png) no-repeat 0 -30px;right:-10px;bottom:-10px}.fb_dialog_vert_left,.fb_dialog_vert_right,.fb_dialog_horiz_top,.fb_dialog_horiz_bottom{position:absolute;background:#525252;filter:alpha(opacity=70);opacity:.7}.fb_dialog_vert_left,.fb_dialog_vert_right{width:10px;height:100%}.fb_dialog_vert_left{margin-left:-10px}.fb_dialog_vert_right{right:0;margin-right:-10px}.fb_dialog_horiz_top,.fb_dialog_horiz_bottom{width:100%;height:10px}.fb_dialog_horiz_top{margin-top:-10px}.fb_dialog_horiz_bottom{bottom:0;margin-bottom:-10px}.fb_dialog_iframe{line-height:0}.fb_dialog_content .dialog_title{background:#6d84b4;border:1px solid #3b5998;color:#fff;font-size:14px;font-weight:bold;margin:0}.fb_dialog_content .dialog_title>span{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/yd/r/Cou7n-nqK52.gif) no-repeat 5px 50%;float:left;padding:5px 0 7px 26px}body.fb_hidden{-webkit-transform:none;height:100%;margin:0;overflow:visible;position:absolute;top:-10000px;left:0;width:100%}.fb_dialog.fb_dialog_mobile.loading{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/ya/r/3rhSv5V8j3o.gif) white no-repeat 50% 50%;min-height:100%;min-width:100%;overflow:hidden;position:absolute;top:0;z-index:10001}.fb_dialog.fb_dialog_mobile.loading.centered{max-height:590px;min-height:590px;max-width:500px;min-width:500px}#fb-root #fb_dialog_ipad_overlay{background:rgba(0, 0, 0, .45);position:absolute;left:0;top:0;width:100%;min-height:100%;z-index:10000}#fb-root #fb_dialog_ipad_overlay.hidden{display:none}.fb_dialog.fb_dialog_mobile.loading iframe{visibility:hidden}.fb_dialog_content .dialog_header{-webkit-box-shadow:white 0 1px 1px -1px inset;background:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#738ABA), to(#2C4987));border-bottom:1px solid;border-color:#1d4088;color:#fff;font:14px Helvetica, sans-serif;font-weight:bold;text-overflow:ellipsis;text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0;vertical-align:middle;white-space:nowrap}.fb_dialog_content .dialog_header table{-webkit-font-smoothing:subpixel-antialiased;height:43px;width:100%}.fb_dialog_content .dialog_header td.header_left{font-size:12px;padding-left:5px;vertical-align:middle;width:60px}.fb_dialog_content .dialog_header td.header_right{font-size:12px;padding-right:5px;vertical-align:middle;width:60px}.fb_dialog_content .touchable_button{background:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#4966A6), color-stop(.5, #355492), to(#2A4887));border:1px solid #29447e;-webkit-background-clip:padding-box;-webkit-border-radius:3px;-webkit-box-shadow:rgba(0, 0, 0, .117188) 0 1px 1px inset, rgba(255, 255, 255, .167969) 0 1px 0;display:inline-block;margin-top:3px;max-width:85px;line-height:18px;padding:4px 12px;position:relative}.fb_dialog_content .dialog_header .touchable_button input{border:none;background:none;color:#fff;font:12px Helvetica, sans-serif;font-weight:bold;margin:2px -12px;padding:2px 6px 3px 6px;text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0}.fb_dialog_content .dialog_header .header_center{color:#fff;font-size:16px;font-weight:bold;line-height:18px;text-align:center;vertical-align:middle}.fb_dialog_content .dialog_content{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/y9/r/jKEcVPZFk-2.gif) no-repeat 50% 50%;border:1px solid #555;border-bottom:0;border-top:0;height:150px}.fb_dialog_content .dialog_footer{background:#f2f2f2;border:1px solid #555;border-top-color:#ccc;height:40px}#fb_dialog_loader_close{float:left}.fb_dialog.fb_dialog_mobile .fb_dialog_close_button{text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0}.fb_dialog.fb_dialog_mobile .fb_dialog_close_icon{visibility:hidden}
+.fb_iframe_widget{display:inline-block;position:relative}.fb_iframe_widget span{display:inline-block;position:relative;text-align:justify}.fb_iframe_widget iframe{position:absolute}.fb_iframe_widget_lift{z-index:1}.fb_hide_iframes iframe{position:relative;left:-10000px}.fb_iframe_widget_loader{position:relative;display:inline-block}.fb_iframe_widget_fluid{display:inline}.fb_iframe_widget_fluid span{width:100%}.fb_iframe_widget_loader iframe{min-height:32px;z-index:2;zoom:1}.fb_iframe_widget_loader .FB_Loader{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/y9/r/jKEcVPZFk-2.gif) no-repeat;height:32px;width:32px;margin-left:-16px;position:absolute;left:50%;z-index:4}
+.fbpluginrecommendationsbarleft,.fbpluginrecommendationsbarright{position:fixed !important;bottom:0;z-index:999}.fbpluginrecommendationsbarleft{left:10px}.fbpluginrecommendationsbarright{right:10px}</style></head><body id="article2071777" class="article javaworld" style=""><layer hidden="true"><img src="./Add dynamic Java code to your application   JavaWorld_files/svrGP.aspx" border="0" width="1" height="1"></layer>
+<script type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/elqFCS.js"></script><iframe name="elqFCSFra" style="display: none" src="./Add dynamic Java code to your application   JavaWorld_files/template.htm" width="1" height="1" frameborder="0" border="0" noresize="" scrolling="no"></iframe>
+<script type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/elqScr.js"></script><script type="text/javascript" language="JavaScript" src="./Add dynamic Java code to your application   JavaWorld_files/svrGP(1).aspx"></script>
+<script type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/elqIDG.js"></script>
+
+
+
+	
+		
+			
+			
+			
+		
+		
+			
+			
+		
+	
+	
+	
+
+<script type="text/javascript">
+	IDG = window.IDG || {};
+	IDG.PageInfo = IDG.PageInfo || {};
+	IDG.PageInfo = function() {
+		return {
+			eloqua_type: "article", 
+			eloqua_topic: ""
+		};
+	}();
+	var elqCustomerGUID = "";
+	if (this.GetElqCustomerGUID && typeof GetElqCustomerGUID === "function") {
+	        elqCustomerGUID = GetElqCustomerGUID();
+	}
+	IDG.Eloqua.invoke_flash();
+</script>
+<!-- End Eloqua Tracking -->
+	
+	
+		
+	<script type="text/javascript">
+		var g_arrModules = new Array();
+	</script>
+
+
+
+	
+
+		
+
+
+
+
+
+
+
+
+
+
+
+<!-- BEGIN PAGE HEADER -->
+<header id="banner">
+	
+    <div class="ad">
+  		
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+		
+			
+			
+			
+				<div id="topleaderboard" class="" style="">
+					<script type="text/javascript">
+						IDG.GPT.addDisplayedAd("topleaderboard", "true");
+						googletag.cmd.push(function() { googletag.display('topleaderboard'); });
+					</script><div id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_2__container__" style="border: 0pt none; "><iframe id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_2" name="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_2" width="728" height="90" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom; " src="javascript:"<html><body style='background:transparent'></body></html>""></iframe></div><iframe id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_2__hidden__" name="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_2__hidden__" width="0" height="0" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom; visibility: hidden; display: none; " src="javascript:"<html><body style='background:transparent'></body></html>""></iframe>
+				</div>				
+			
+		
+	
+ 	
+  
+    </div>
+	
+    <div class="main-header">
+    	
+    	<script>
+    	if(!$thm.deviceWidthAtLeast($thm.deviceBreakpoints.tablet)){
+			$('.main-header').insertBefore($('#banner .ad'));
+    	}
+		</script>
+		
+	    <section class="topics">
+	        <nav id="scrollable"><div class="ftscroller_container"><div class="ftscroller_x ftscroller_hwaccelerated" style="-webkit-transform: translate3d(0px, 0px, 0px); ">
+				
+					
+					
+				
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+		
+		<!-- blx4 #670 blox4.raw_link_list  -->
+			
+		
+		
+			
+				
+					
+					
+					
+						
+							
+					
+						
+					
+					
+					
+				
+				
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<ul style="width: 1233px; ">
+		<li class="header">Trending:</li>
+		
+			
+				<li><a href="http://www.javaworld.com/category/learn-java/">Learn Java</a></li>
+			
+		
+			
+				<li><a href="http://www.javaworld.com/tag/programmingcareers/">Programming Careers</a></li>
+			
+		
+			
+				<li><a href="http://www.javaworld.com/blog/java-qanda/">Java Q&amp;A</a></li>
+			
+		
+			
+				<li><a href="http://www.javaworld.com/blog/java-101/">Java 101</a></li>
+			
+		
+			
+				<li><a href="http://www.javaworld.com/category/mobile-java/">Mobile Java</a></li>
+			
+		
+			
+				<li><a href="http://www.javaworld.com/category/java-app-dev/">Java App Dev</a></li>
+			
+		
+			
+				<li><a href="http://www.javaworld.com/blog/open-source-java-projects/">Open Source Java </a></li>
+			
+		
+			
+				<li><a href="http://www.javaworld.com/resources">Resources/White Papers</a></li>
+			
+		
+	</ul>
+
+		
+	
+
+
+	        </div></div></nav>
+	    </section>
+	    <section class="main">
+	        <div class="wrapper">
+	            <div class="masthead">
+	                
+	                <button class="ss-icon">Rows</button>
+	                
+	                <a href="http://www.javaworld.com/"><span class="ir logo">javaworld</span></a>
+	            	
+	            	<!--
+	            	<img class="print-only" src="/www.idge.jvw/images/javaworld-logo-print.png">
+	            	-->
+	            	
+	            	<img class="print-only" src="./Add dynamic Java code to your application   JavaWorld_files/javaworld-logo-print.png">
+	            	
+	            </div>
+	            <div id="reading-tools-wrapper">
+	            	
+	                <div class="reading">
+	                    <div id="reading-selector">
+	                        <div class="label">Most read: <i class="ss-icon tick">descend</i></div>
+	                        
+
+
+
+
+
+
+
+
+
+
+<ul>
+	
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://www.javaworld.com/article/2600308/open-source-tools/githubs-new-ceo-were-serious-about-the-enterprise.html">GitHub's new CEO: We're serious about the enterprise</a></li>
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://www.javaworld.com/article/2601345/mobile-java/feedhenry-uses-nodejs-to-fortify-mobile-apps.html">FeedHenry uses Node.js to fortify mobile apps</a></li>
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://www.javaworld.com/article/2598480/core-java/why-developers-should-get-excited-about-java-9.html">Why developers should get excited about Java 9</a></li>
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://www.javaworld.com/article/2600811/java-platform/big-java-news-in-late-summer-2014.html">Big Java news in late summer 2014</a></li>
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://www.javaworld.com/article/2601433/java-language/programmers-could-get-repl-in-official-java.html">Programmers could get REPL in official Java</a></li>
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://www.javaworld.com/article/2602004/java-app-dev/beyond-average-10-best-practices-for-coding-java-apis.html">Beyond average: 10 best practices for coding Java APIs</a></li>
+				
+				
+			
+		
+	
+
+
+	<li class="more"><a href="http://www.javaworld.com/news">More News <span class="ss-icon">navigateright</span></a></li>
+</ul>
+	                    </div>
+	                </div>
+	                
+	                <nav class="tools">
+	                    <ul class="social">
+							
+
+
+
+
+
+
+
+
+
+
+
+
+	<li><a href="https://twitter.com/javaworldcom" rel="nofollow" target="_blank" onclick="brandFollowTrack(&#39;Twitter&#39;)"><i class="ss-icon ss-social">Twitter</i></a></li>
+
+
+
+	<li><a href="http://www.linkedin.com/company/javaworld-com" rel="nofollow" target="_blank" onclick="brandFollowTrack(&#39;LinkedIn&#39;)"><i class="ss-icon ss-social brand">LinkedIn</i></a></li>
+
+
+
+	<li><a href="https://www.facebook.com/pages/JavaWorld/107993545895326" rel="nofollow" target="_blank" onclick="brandFollowTrack(&#39;Facebook&#39;)"><i class="ss-icon ss-social brand">Facebook</i></a></li>				
+
+
+
+	<li><a href="https://plus.google.com/117974570132126965756/posts" rel="publisher" target="_blank" onclick="brandFollowTrack(&#39;Google+&#39;)"><i class="ss-icon ss-social brand">Google+</i></a></li>                	
+
+
+
+
+
+	<li><a href="http://www.javaworld.com/about/rss/" target="_blank"><i class="ss-icon ss-social">RSS</i></a></li>
+
+
+
+	                    </ul>
+	                    <ul class="user">
+	                    	
+	                        
+	                        <li><a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#search" id="search-btn"><i class="ss-icon">Search</i></a></li>
+	                        
+	                    </ul>
+	                </nav>
+	            </div>
+	        </div>
+	    </section>
+	    <section class="tools-expand">
+	        <form class="search" id="search-form" action="http://www.javaworld.com/search">
+	            <label for="search-box">Search for</label>
+				<input type="text" name="query" id="banner-search-term" value="" class="ui-autocomplete-input" autocomplete="off"><span role="status" aria-live="polite" class="ui-helper-hidden-accessible"></span>
+	            <input type="submit" id="banner-search-submit" value="Go">
+	            <input type="hidden" name="contentType" value="article,resource">
+	            <div class="search-suggest">Suggestions for you</div>
+	        </form>
+	        <div class="user">
+	            <form>
+	                <label for="login-email">Insider email</label> <input id="login-email" type="text">
+	            </form>
+	        </div>
+	    <ul class="ui-autocomplete ui-menu ui-widget ui-widget-content ui-corner-all" id="ui-id-1" tabindex="0" style="z-index: 1; display: none; "></ul></section>
+	    
+	    
+	    
+		
+	    <nav class="main">
+	    	<ul class="primary">
+				
+					
+	        		<li><a href="http://www.javaworld.com/category/core-java/" class="hasChildren">Core Java<span class="ss-icon">navigateright</span></a>
+	            		
+		            		<ul>
+		                		<li><a href="http://www.javaworld.com/category/core-java/">All Core Java</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/client-side-java">Client-side Java</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/design-patterns">Design Patterns</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/java-concurrency">Java Concurrency</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/java-language">Java Language</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/java-platform">Java Platform</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/java-se">Java SE APIs</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/java-security">Java Security</a></li>
+		            			
+		            		</ul>
+		            	
+	        		</li>
+				
+					
+	        		<li><a href="http://www.javaworld.com/category/enterprise-java/" class="hasChildren">Enterprise Java<span class="ss-icon">navigateright</span></a>
+	            		
+		            		<ul>
+		                		<li><a href="http://www.javaworld.com/category/enterprise-java/">All Enterprise Java</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/architecture-scalability">Architecture &amp; Scalability</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/data-storage">Data Storage &amp; Management</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/enterprise-application-integration">Enterprise Application Integration</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/application-performance">Enterprise Application Performance</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/enterprise-middleware">Enterprise Middleware</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/java-ee">Java EE APIs</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/java-web-development">Java Web Development</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/java-web-tier">Servlets, JSP &amp; JSF</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/spring-framework">Spring Framework</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/soa">Web Services and SOA</a></li>
+		            			
+		            		</ul>
+		            	
+	        		</li>
+				
+					
+	        		<li><a href="http://www.javaworld.com/category/java-app-dev/" class="hasChildren">Java App Dev<span class="ss-icon">navigateright</span></a>
+	            		
+		            		<ul>
+		                		<li><a href="http://www.javaworld.com/category/java-app-dev/">All Java App Dev</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/app-servers">Application Servers</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/big-data">Big Data</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/build-ci-sdlc">Build Automation</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/cloud-computing">Cloud Computing</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/html-css-js">HTML5/CSS/JavaScript</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/developer-tools-ide">Java Toolbox</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/open-source-tools">Open Source</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/scripting-jvm-languages">Scripting &amp; JVM Languages</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/testing-debugging">Testing &amp; Debugging</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/web-app-frameworks">Web Application Frameworks</a></li>
+		            			
+		            		</ul>
+		            	
+	        		</li>
+				
+					
+	        		<li><a href="http://www.javaworld.com/category/learn-java/">Learn Java</a>
+	            		
+	        		</li>
+				
+					
+	        		<li><a href="http://www.javaworld.com/category/mobile-java/" class="hasChildren">Mobile Java<span class="ss-icon">navigateright</span></a>
+	            		
+		            		<ul>
+		                		<li><a href="http://www.javaworld.com/category/mobile-java/">All Mobile Java</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/java-android-developer">Java Android Developer</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/java-me">Java ME</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/java-ios-developer">Java iOS Developer</a></li>
+		            			
+		            				<li><a href="http://www.javaworld.com/category/javafx">JavaFX</a></li>
+		            			
+		            		</ul>
+		            	
+	        		</li>
+				
+			</ul>
+	
+	    	<ul class="secondary">
+           		
+           		
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://www.javaworld.com/news">News</a></li>
+<li><a href="http://www.javaworld.com/feature">Features</a></li>
+<li><a href="http://www.javaworld.com/howto">How-Tos</a></li>
+<li><a href="http://www.javaworld.com/blogs">Blogs</a></li>
+<li><a href="http://www.javaworld.com/resources">Resources/White Papers</a></li>
+<li><a href="http://www.javaworld.com/newsletters/signup.html">Newsletters</a></li>
+           		
+	    	</ul>
+		</nav>
+		
+	</div>
+</header>
+<!-- Events Header -->
+
+	
+		
+		
+		
+		
+	
+	
+	
+	
+	
+
+
+
+	
+	
+	
+	
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+
+<!-- END PAGE HEADER -->
+
+		<div id="page-wrapper">
+			
+			
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			
+			<section role="main">
+
+				<article itemscope="" itemtype="http://schema.org/NewsArticle">
+
+				
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	<div class="ticker-ad ad">
+	
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+		
+			
+			
+			
+				<div id="ticker" class="" style="display: none; ">
+					<script type="text/javascript">
+						IDG.GPT.addDisplayedAd("ticker", "true");
+						googletag.cmd.push(function() { googletag.display('ticker'); });
+					</script><div id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_3__container__" style="border: 0pt none; "><iframe id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_3" name="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_3" width="972" height="100" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom; " src="javascript:"<html><body style='background:transparent'></body></html>""></iframe></div>
+				<iframe id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_3__hidden__" name="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_3__hidden__" width="0" height="0" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom; visibility: hidden; display: none; " src="javascript:"<html><body style='background:transparent'></body></html>""></iframe></div>				
+			
+		
+	
+ 	
+ 
+	</div>
+	
+
+
+
+
+	
+	
+	
+	
+	
+		
+	
+
+
+
+	
+	
+	
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<header>
+	
+	
+	
+	
+	
+	
+	<nav class="breadcrumbs horiz">
+		<ul itemscope="" itemtype="http://data-vocabulary.org/Breadcrumb">
+			<li><a href="http://www.javaworld.com/" itemprop="url"><span itemprop="title">Home</span></a></li>
+			
+				
+				
+					<li><a href="http://www.javaworld.com/category/core-java/" itemprop="articleSection url"><span itemprop="title">Core Java</span></a></li>
+				
+				
+					<li><a href="http://www.javaworld.com/category/design-patterns/" itemprop="articleSection url"><span itemprop="title">Design Patterns</span></a></li>
+				
+			
+		</ul>
+	</nav>
+	
+	
+	
+	
+	
+	
+	
+		
+		
+			<div class="category"><a href="http://www.javaworld.com/news" itemprop="genre">News</a></div>
+		
+	
+	
+	
+	
+		
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+<script type="text/javascript">
+  (function() {
+    var li = document.createElement('script'); li.type = 'text/javascript'; li.async = true;
+    li.src = ('https:' == document.location.protocol ? 'https:' : 'http:') + '//platform.stumbleupon.com/1/widgets.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(li, s);
+  })();
+</script>
+
+
+<style>
+#sharer a.comment:after {
+	display: none;
+}
+</style>
+
+<div id="sharer">
+<ul>
+<li class="close-btn"> <i class="ss-icon">close</i> </li>
+<li class="mob desk comment" data-comment-count="16"><a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#comments" class="comment" onclick="sharingTrack(&#39;Comment-vert&#39;)" data-comment-count="16"><i class="ss-icon">chat</i></a></li>
+<li class="mob desk car"><a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#social" class="share-modal" onclick="sharingTrack(&#39;Social-vert&#39;)"><i class="ss-icon">share</i></a></li>
+<li class="sosh grid1">
+	<a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#twitter" onclick="sharingTrack(&#39;Twitter-vert&#39;)"><i class="ss-icon ss-social">twitter</i></a>
+	<div class="socialite twitter-share socialite-instance" data-text="Add dynamic Java code to your application" data-count="vertical" data-url="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html" data-via="javaworldcom" data-default-href="http://twitter.com/share" data-socialite="0"><a class="twitter-share-button" data-text="Add dynamic Java code to your application" data-count="vertical" data-url="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html" data-via="javaworldcom" data-default-href="http://twitter.com/share" data-socialite="0" href="http://twitter.com/share" data-lang="en"></a></div>
+</li>
+<li class="sosh grid2">
+	<a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#facebook" onclick="sharingTrack(&#39;Facebook-vert&#39;)"><i class="ss-icon ss-social">facebook</i></a>
+	<div class="socialite facebook-like socialite-instance socialite-loaded" data-layout="box_count" data-href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html" data-default-href="#" data-socialite="1"><div class="fb-like fb_iframe_widget" data-layout="box_count" data-href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html" data-default-href="#" data-socialite="1" fb-xfbml-state="rendered" fb-iframe-plugin-query="app_id=196366870381968&amp;href=http%3A%2F%2Fwww.javaworld.com%2Farticle%2F2071777%2Fdesign-patterns%2Fadd-dynamic-java-code-to-your-application.html&amp;layout=box_count&amp;locale=en_GB&amp;sdk=joey"><span style="vertical-align: top; width: 0px; height: 0px; overflow: hidden; "><iframe name="f20480183" width="1000px" height="1000px" frameborder="0" allowtransparency="true" scrolling="no" title="fb:like Facebook Social Plugin" style="border: none; visibility: visible; width: 0px; height: 0px; " src="./Add dynamic Java code to your application   JavaWorld_files/saved_resource.htm"></iframe></span></div></div>
+</li>
+<li class="sosh grid3">
+	<a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#linkedin" onclick="sharingTrack(&#39;LinkedIn-vert&#39;)"><i class="ss-icon ss-social">linkedin</i></a>
+	<div class="socialite linkedin-share socialite-instance socialite-loaded" data-counter="top" data-showzero="true" data-url="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html" data-default-href="#" data-socialite="2"><span style="line-height: 1; vertical-align: baseline; display: inline-block; text-align: center; " class="IN-widget"><span style="padding: 0px !important; margin: 0px !important; text-indent: 0px !important; display: inline-block !important; vertical-align: baseline !important; font-size: 1px !important; "><span id="li_ui_li_gen_1410416356562_1-container" class="IN-top IN-empty"><span id="li_ui_li_gen_1410416356562_1" class="IN-top"><span id="li_ui_li_gen_1410416356562_1-inner" class="IN-top"><span id="li_ui_li_gen_1410416356562_1-content" class="IN-top">0</span></span></span></span></span><br><span style="padding: 0px !important; margin: 0px !important; text-indent: 0px !important; display: inline-block !important; vertical-align: baseline !important; font-size: 1px !important; "><span id="li_ui_li_gen_1410416356513_0"><a id="li_ui_li_gen_1410416356513_0-link" href="javascript:void(0);"><span id="li_ui_li_gen_1410416356513_0-logo">in</span><span id="li_ui_li_gen_1410416356513_0-title"><span id="li_ui_li_gen_1410416356513_0-mark"></span><span id="li_ui_li_gen_1410416356513_0-title-text">Share</span></span></a></span></span></span><script type="IN/Share+init" data-counter="top" data-showzero="true" data-url="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html" data-default-href="#" data-socialite="2"></script></div>
+</li>
+<li class="sosh grid4">
+	<a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#googleplus" onclick="sharingTrack(&#39;GooglePlus-vert&#39;)"><i class="ss-icon ss-social .ss-googleplus">googleplus</i></a>
+	<div class="socialite googleplus-one socialite-instance" data-size="tall" data-url="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html" data-default-href="#" data-socialite="3"><div class="g-plusone" data-size="tall" data-url="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html" data-default-href="#" data-socialite="3"></div></div>
+</li>
+<li class="sosh grid5">
+	<a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#more" onclick="sharingTrack(&#39;ShareStumbleupPrint-vert&#39;)"><i class="ss-icon">out</i></a>
+	<ul>
+		<li class="showmob">
+			<script>reddit_newwindow = '1';reddit_url = 'http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html';</script>
+			<script type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/button3.js"></script><iframe src="./Add dynamic Java code to your application   JavaWorld_files/button3.htm" height="52" width="69" scrolling="no" frameborder="0"></iframe>
+		</li>
+		<li>
+			<iframe scrolling="no" frameborder="0" allowtransparency="true" style="overflow: hidden; margin: 0px; padding: 0px; border: 0px; " src="./Add dynamic Java code to your application   JavaWorld_files/saved_resource(1).htm" width="50" height="60" id="iframe-stmblpn-widget-1"></iframe>
+		</li>
+		<li class="print-icon"><a href="javascript:window.print();"><i class="ss-icon">print</i></a></li>
+	</ul>
+</li>
+<li class="grid6">
+	<a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#email" id="email-icon"><i class="ss-icon">email</i></a>
+</li>
+</ul>
+</div>
+
+	
+
+<script type="text/javascript">
+	function encodeQueryData(params) {
+		var ret = [];
+		for (var paramKey in params) {
+			ret.push(encodeURIComponent(paramKey) + "=" + encodeURIComponent(params[paramKey]));
+		}
+		return ret.join("&");
+	}
+	$(document).ready(function() {
+		$(document).on("click","#email-icon",function(event) {
+			event.preventDefault();
+			sharingTrack('Email-vert');
+			$('#emailModal').fadeIn(800);
+		});
+
+		$(document).on("click","#emailModal .close-btn",function(event) {
+			event.preventDefault();
+            $('#emailModal').hide();
+            $("#emailModal .eml-friend").show();
+            $(".eml-friend-success").hide();
+            $(".eml-friend-error").hide();
+			$('#emailModal').fadeOut(200);
+		});
+
+		$(document).on("submit","#emailModal form",function(event) {
+			event.preventDefault();
+			var $form = $(this);
+			var action = $form.attr('action');
+			var formData = $form.serialize();
+			var emailFrom = $('#email-from').val();
+			var emailTo = $('#email-to').val();
+			if (isValidEmailAddress(emailFrom) && isValidEmailAddress(emailTo)) {
+				$('#eml-friend-message').html("");
+
+				// eloqua
+				var eloquaParam = {
+					AssetCountforCurrentCampaign : "1",
+					AssetName : "",
+					AssetTopic : "",
+					AssetType : "",
+					BuyingCycle : "",
+					C_Address1 : "",
+					C_Address2 : "",
+					C_BusPhone : "",
+					C_City : "",
+					C_Company_Size1 : "",
+					C_Country : "",
+					C_EmailAddress : "",
+					C_FirstName : "",
+					C_Industry1 : "",
+					C_Job_Role1 : "",
+					C_LastName : "",
+					C_State_Prov : "",
+					C_Zip_Postal : "",
+					ClientName : "",
+					ProgramName : "",
+					brand : "",
+					elqFormName : "CentralRegistrationMasterForm",
+					formId : "3062313",
+					elqSiteId : 1856,
+					elqCustomerGUID : elqCustomerGUID,
+					elqCookieWrite : 0,
+					friend_email : emailFrom,
+					friend_article_title : "Add dynamic Java code to your application",
+					friend_taxo : "Core Java",
+					friend_source : "JavaWorld",
+					friend_article_url : "http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html", 
+					device_platform : navigator.userAgent
+				};
+				$.ajax("http://now.eloqua.com/e/f2.aspx", {
+					type: 'GET',
+					data: eloquaParam,
+					success: function(data, textStatus, xhr) {
+					},
+					error: function(xhr, textStatus, errorThrown) {
+					}
+				});
+				// eloqua
+				var eloquaParamMini = {
+					elqCustomerGUID : elqCustomerGUID,
+					friend_taxo : "Core Java",
+					friend_source : "JavaWorld",
+					device_platform : navigator.userAgent
+				};
+				formData += "&" +encodeQueryData(eloquaParamMini);
+
+				// email
+				$.ajax(action, {
+					type: 'POST',
+					data: formData,
+					success: function(data, textStatus, xhr) {
+						$("#emailModal .eml-friend").hide();
+						$(".eml-friend-success").fadeIn(800);
+					},
+					error: function(xhr, textStatus, errorThrown) {
+						$("#emailModal .eml-friend").hide();
+						$(".eml-friend-error").fadeIn(800);
+					}
+				});
+			}
+			else {
+				$('#eml-friend-message').html("Sorry! Invalid email address.");
+			}
+		});
+ 	});
+	
+</script>
+<div class="modal eml-friend-wrapper" id="emailModal" style="display:none;">
+	<div id="eml-friend-message"></div>
+	<form class="eml-friend" action="http://www.javaworld.com/eloquaemail/article?eloqua=true&id=2071777">
+		<input type="hidden" name="title" value="Add dynamic Java code to your application">
+		<input type="hidden" name="url" value="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html">
+		<a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#" class="close-btn"><i class="ss-icon">Close</i></a>
+		<h3>Email a friend</h3>
+
+		<div class="input-row">
+			<h4 class="input-label">To</h4>
+			<input id="email-to" value="" placeholder="Email address (required)" type="email" name="recipients" tabindex="1">
+			<p class="addl-text">Commas separated for multiple addresses</p>
+		</div>
+		<hr>
+		<div class="input-row">
+			<h4 class="input-label">From</h4>
+			<input id="name" value="" placeholder="Name (optional)" type="text" name="name" tabindex="2">
+		</div>
+		<div class="input-row">
+			<input id="email-from" value="" placeholder="Email address (required)" type="email" name="sender" tabindex="3">
+		</div>
+		<div class="input-row">
+			<textarea name="message" placeholder="Check out this article I found on JavaWorld." id="personalization" tabindex="4"></textarea>
+		</div>
+		<div class="submit">
+			<input type="submit" value="Send" class="input-submit" tabindex="5">
+			<a href="http://www.javaworld.com/about/privacy.html" class="submit-privacy" target="_blank">Privacy Policy</a>
+		</div>
+	</form>
+
+	<div class="eml-ty eml-friend-success" style="display:none;">
+		<a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#" class="close-btn"><i class="ss-icon">Close</i></a>
+		<h3>Thank you</h3>
+		<p class="msg-sent">Your message has been sent.</p>
+	</div>
+	<div class="eml-friend-error" style="display:none;">
+		<a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#" class="close-btn"><i class="ss-icon">Close</i></a>
+		<h3>Sorry</h3>
+		<p class="msg-sent">There was an error emailing this page.</p>
+	</div>
+</div>
+
+		
+	
+
+	<h1 itemprop="headline">Add dynamic Java code to your application</h1>
+</header>
+
+
+
+
+	
+	
+		
+	
+
+
+
+<section class="epo" id="drr-top-ad">
+	
+	<div class="ad">
+		
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+		
+			
+			
+			
+				<div id="topimu" class="adunit" style="">
+					<script type="text/javascript">
+						IDG.GPT.addDisplayedAd("topimu", "true");
+						googletag.cmd.push(function() { googletag.display('topimu'); });
+					</script><div id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_6__container__" style="border: 0pt none; "><iframe id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_6" name="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_6" width="300" height="250" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom; " src="javascript:"<html><body style='background:transparent'></body></html>""></iframe></div>
+				<iframe id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_6__hidden__" name="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_6__hidden__" width="0" height="0" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom; visibility: hidden; display: none; " src="javascript:"<html><body style='background:transparent'></body></html>""></iframe></div>				
+			
+		
+	
+ 	
+ 
+    </div>
+	
+    
+    	
+    	
+    		
+    			
+    		
+
+
+
+
+
+
+
+
+
+
+
+<!-- Related -->
+
+
+
+
+
+
+
+
+	<div class="related-promo-wrapper">
+		<div class="promo apart">
+			<div class="hed">More like this</div>
+	    	<ul class="">
+		    	
+		    		
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="clearfix  ">
+	
+	<div class="item">   	
+	   	
+	   	
+		<div class="title"><a href="http://www.javaworld.com/article/2071753/mobile-java/push-messages-that-automatically-launch-a-java-mobile-application.html">Push messages that automatically launch a Java mobile application</a></div>
+	</div>
+</li>
+		    	
+		    		
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="clearfix  ">
+	
+	<div class="item">   	
+	   	
+	   	
+		<div class="title"><a href="http://www.javaworld.com/article/2071787/soa/mustang--the-fast-track-to-web-services.html">Mustang: The fast track to Web services</a></div>
+	</div>
+</li>
+		    	
+		    		
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="clearfix  ">
+	
+	<div class="item">   	
+	   	
+	   	
+		<div class="title"><a href="http://www.javaworld.com/article/2071739/java-web-development/leverage-spring-web-development-with-offspring.html">Leverage Spring Web development with Offspring</a></div>
+	</div>
+</li>
+		    	
+		    </ul>
+		</div>
+		<div class="handle"></div>
+	</div>
+
+    	
+    
+</section>
+
+
+
+
+	
+		
+		
+		
+	
+
+
+
+
+
+	<section class="deck">
+		<h2 itemprop="description">Write code that can respond to changes at runtime</h2>
+	</section>
+
+
+
+
+
+
+
+	
+	<div class="byline vcard author ">
+		
+		<div class="byline-wrapper">
+			<p class="name">
+				
+					
+				
+
+
+
+
+
+
+
+
+
+
+
+
+
+By <span class="fn" itemprop="name">Li Yang</span>
+			</p>
+			
+			<p class="dateline">
+				
+				
+					
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+<span itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+<span itemprop="name">JavaWorld</span>
+</span> <span class="divider">|</span>
+				
+				
+				<span itemprop="datePublished" content="2006-06-12T01:00-0700">Jun 12, 2006 1:00 AM
+					 PT
+				</span>
+
+			</p>
+		</div>
+	</div>
+
+
+
+
+
+
+
+	
+		
+	
+
+
+
+				<section class="bodee">
+
+					
+						
+						
+							
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div class="apart-alt tags">
+    <ul itemprop="keywords">
+    	
+    		<li><a href="http://www.javaworld.com/tag/java/">Java</a></li>
+    	
+    </ul>
+	</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+
+
+
+	
+	
+
+
+
+	
+	
+
+
+
+<script type="text/javascript">
+
+$(function() {
+	var debug = false;
+	var topImuHeight = 250;
+	try {
+		topImuHeight = getTallestNoScroll();
+	}
+	catch (e) {
+		console.log(e);
+	}
+	var setInt = setInterval(checkHeight, 100);
+	var count = 0;
+	
+	function checkHeight() {
+		if ((topImuHeight > 0 && count > 10) || count > 50) {
+			if (!topImuHeight > 0 ) {
+				topImuHeight = getTallestWithScroll();
+			}
+			if (! topImuHeight > 0 || topImuHeight > 1200) {
+				if (debug) {
+					console.log("topimuheight is out of range so manually set to 250");
+				}
+				topImuHeight = 250;
+			}
+			clearInterval(setInt);
+			executeDRR(topImuHeight);
+		}
+		else {
+			if (debug) {
+				console.log("have to check height again and counter is: " + count);
+			}
+			topImuHeight = getTallestNoScroll();
+			count++;
+		}
+	}
+	
+	function getTallestNoScroll() {
+	    var bodyOffset = 0;
+	    var htmlHeight = 0;
+	    var htmlOffset = 0;
+		
+	    if ($('#topimu div iframe').length) {
+			var body = document.getElementById('topimu').getElementsByTagName('iframe')[0].contentWindow.document.body;
+	    	var html = document.getElementById('topimu').getElementsByTagName('iframe')[0].contentWindow.document.documentElement;
+
+	    	if (body != null) {
+	    		bodyOffset = body.offsetHeight;
+	    	}
+	    	if (html != null) {
+	    		htmlHeight = html.clientHeight;
+	    		htmlOffset = html.offsetHeight;
+	    	}
+	    	if (debug) {
+	    		console.log("in getTallestNoScroll");
+	    		if (body != null && body.offsetHeight != null) { console.log("offsetHeight is " + body.offsetHeight); } 
+	 			if (body != null && body.scrollHeight != null) { console.log("scrollHeight is " + body.scrollHeight); }
+				if (html != null && html.clientHeight != null) { console.log("htmlClientHeight is " + html.clientHeight); }
+				if (html != null && html.scrollHeight != null) { console.log("htmlScrollHeight is " + html.scrollHeight); }
+				if (html != null && html.offsetHeight != null) { console.log("htmlOffsetHeight is " + html.offsetHeight); }
+	   		}
+	    }
+	    return Math.max(bodyOffset, htmlHeight, htmlOffset);
+	}
+	
+	function getTallestWithScroll() {
+	    var bodyOffset = 0;
+	    var bodyScroll = 0;
+	    var htmlHeight = 0;
+	    var htmlOffset = 0;
+	    var htmlScroll = 0;
+	    
+	    if ($('#topimu div iframe').length) {
+			var body = document.getElementById('topimu').getElementsByTagName('iframe')[0].contentWindow.document.body;
+	    	var html = document.getElementById('topimu').getElementsByTagName('iframe')[0].contentWindow.document.documentElement;
+    		if (body != null) {
+    			bodyOffset = body.offsetHeight;
+    			bodyScroll = body.scrollHeight;
+    		}
+    		if (html != null) {
+    			htmlHeight = html.clientHeight;
+    			htmlOffset = html.offsetHeight;
+    			htmlScroll = html.scrollHeight;
+    		}
+    		if (debug) {
+    			if (body != null && body.offsetHeight != null) { console.log("offsetHeight is " + body.offsetHeight); } 
+	  			if (body != null && body.scrollHeight != null) { console.log("scrollHeight is " + body.scrollHeight); }
+				if (html != null && html.clientHeight != null) { console.log("htmlClientHeight is " + html.clientHeight); }
+				if (html != null && html.scrollHeight != null) { console.log("htmlScrollHeight is " + html.scrollHeight); }
+				if (html != null && html.offsetHeight != null) { console.log("htmlOffsetHeight is " + html.offsetHeight); }
+    		}
+	    }
+		return Math.max(bodyOffset, bodyScroll, htmlHeight, htmlOffset, htmlScroll);
+	}
+});
+
+function executeDRR(imuHeight) {
+		var debug = false;
+		var topImuHeight = (imuHeight != null && imuHeight > 0) ? imuHeight : 250;
+		var socialPages = ['facebook', 'twitter', 'reddit', 'tumblr'];
+		
+		// Set the calls to module content for right rail 
+		var articleDRRModuleList = ["most.popular.articles","module.epo","module.resources"];
+		var moduleUrls = [];
+		for (var i=0; i<articleDRRModuleList.length; i++) {
+			var articleDRRModuleName = articleDRRModuleList[i];
+			if (articleDRRModuleName == "module.epo") {
+				articleDRRModuleName = getEpoParams();
+			}
+			if (articleDRRModuleName == "module.resources") { 
+				if (false) {
+					continue;	
+				}
+				articleDRRModuleName = "module.resources&pageSize=2&catId=3188";
+			}
+			if (articleDRRModuleName == "module.category.articles") {
+				if (true) {
+					articleDRRModuleName = "module.category.articles&catId=3188";	
+				}
+			}
+			if (articleDRRModuleName.indexOf("module.resources")>=0) {
+				moduleUrls.push("/napi/tile?def=" + articleDRRModuleName);
+			}
+			else {
+				moduleUrls.push("/napi/tile?def=" + articleDRRModuleName + "&excludeCurrentArticle=true&excludeIds=2071777");
+			}
+		}
+
+		var leftModuleUrl = "/napi/tile?def=module.featured.resource";
+		var leftModuleElementId = "drr-left";
+		
+		// Constants 
+		var interModuleHeight = 400;
+		var grafHeight = 25;
+		var moduleHeightBuffer = 350;
+		var adHeightBuffer = 350;
+		var mobileBreak = 768; // Width at which design becomes one column at top of article
+		var leftPixelWindow = 700; // Need at least this much space to place left rail module near end of article 
+		var rightPixelWindow = 300;
+		
+		if (debug) {
+			var topImu = $("#topimu").height(); // not using this one anymore 
+			console.log("old topImu height would have used this " + topImu); 
+		}
+	   	
+		var tagHeight = $(".tags").height();
+		var cumulativeHeight = 0;
+		var loopCounter = 0;
+		var placementTarget = topImuHeight + moduleHeightBuffer + grafHeight + interModuleHeight;
+
+		if ($(window).width() > mobileBreak) {
+			// Desktop view 
+			if ($("figure.hero-img").height()) {
+				cumulativeHeight += $("figure.hero-img").height();
+			}
+		}
+		else {
+			// Mobile View 
+			if ($("figure.hero-img").height()) {
+				placementTarget += $("figure.hero-img").height();
+			}
+			// Add heights of all elements up through read these next (which is placed after second p tag) 
+			var firstModIndex = $("#drr-container > p:eq(1)").index();
+			$("#drr-container").children().slice(0, firstModIndex).each(function() {
+				placementTarget += $(this).height();
+			});
+			// Start mobile drr with an ad placement 
+			loopCounter = 1;
+		}
+		
+		var modules = [];
+		var placementIndex = [];
+
+		var moduleCounter = 0;
+		var originalModuleUrlLength = moduleUrls.length;
+		
+		// Ordering should be [ad, module, module, ad, ad, ad, module, ad, ad, ad, module] per CSOB-445, IDGMPM-6788 
+		var adPositions = new Array(0,3,4,5,7,8,9);
+		
+		// Place Right-rail div containers 
+		$("#drr-container").children().each(function(index,value) {
+			//ignore any hidden elements in the body, like the mobile-only "read this next" module
+			if ($(this).is(':visible')) {
+				if (debug) {
+					console.log($(this));
+				}
+				if (cumulativeHeight >= placementTarget) {
+					console.log("cumulatievHeight >= placementTarget and cumulativeHeight is " + cumulativeHeight + " and placementTarget is " + placementTarget);
+					var placementDiff = 0;
+					if ($.inArray(loopCounter, adPositions) != -1) {
+						IDG.GPT.addExtIMU();
+						var adString = "<code type=\"text\/javascript\"><!--IDG.GPT.IMUCounter = IDG.GPT.IMUCounter + 1;IDG.GPT.addDisplayedAd(IDG.GPT.getIMUSlotName(), \"true\");IDG.GPT.addLazyloadedAd(IDG.GPT.getIMUSlotName(), \"true\");document.write('<div id=\"' + IDG.GPT.getIMUSlotName() + '\" class=\"\">');googletag.cmd.push(function() {googletag.pubads().display(IDG.GPT.unitName, [[320,50],[300,250],[300,50]], IDG.GPT.getIMUSlotName()).setTargeting(\"pos\", IDG.GPT.getIMUSlotName());});document.write('</div>');//--></code>";
+						var adDivString = "<div class=\"apart ad lazyload_ad_article\">" + adString + "</div>";
+						placementDiff = applyInsert($(this), adDivString);
+						if (debug) {
+							console.log("Just placed an ad and the placementDiff is: " + placementDiff);
+						}
+						placementTarget = cumulativeHeight + placementDiff + interModuleHeight + adHeightBuffer;
+					} 
+					else {
+						var moduleDivString = "";
+						var elementId = "drr-mod-"+moduleCounter;
+						moduleDivString = "<div id=\"" + elementId + "\" />";
+						modules.push(elementId);
+						
+						placementDiff = applyInsert($(this), moduleDivString);
+						if (debug) {
+							console.log("Just placed a module and the placementDiff is: " + placementDiff);
+						}
+						placementTarget = cumulativeHeight + placementDiff + interModuleHeight + moduleHeightBuffer;
+						moduleCounter++;
+					}
+					loopCounter++;
+				}
+				// Avoid placing elements too soon due to non-large figures inflating the cumulative height
+				if ($(this).is("figure") && !$(this).is("figure.large")) {
+					cumulativeHeight += grafHeight;
+				}
+				else {
+					cumulativeHeight += $(this).height() + grafHeight;
+				}
+			}
+		});
+		
+		// clone Related Stories module m-15 to come in after 2nd para in article body for mobile breakpoint display
+		var $relatedStories = $('.related-promo-wrapper');
+		if ($relatedStories.length) {		
+			var $relatedStoriesClone = $relatedStories.clone();
+			$relatedStoriesClone.insertAfter( "#drr-container > p:eq(1)");	
+		}
+		
+		var $insiderPromo = $('.insider-promo-wrapper');
+		if ($insiderPromo.length) {		
+			var $insiderPromoClone = $insiderPromo.clone();
+			$insiderPromoClone.insertAfter( "#drr-container > p:eq(1)");
+		}
+		
+		//place left side element
+		cumulativeHeight = 0;
+		var leftPlacementTarget = tagHeight < 100 ? 100 : tagHeight;
+		var leftPlacementLookaheadStart = null;
+		var leftIntervalHeight = 650;
+		var leftPlacementIndex = null;
+		var $leftPlacementElement;
+		
+		// If this is not a sponsored article then find the left placement index 
+		if (!false) {
+			$("#drr-container").children().each(function(index,value) {
+				if (debug) {
+					console.log("leftRailProcessor iterate. index "+ index);
+					console.log($(this));
+				}
+				//ignore any hidden elements in the body, like the mobile-only "read this next" module
+				if($(this).is(':visible')) {
+					if (cumulativeHeight >= leftPlacementTarget) {
+						if (debug) {
+							console.log("congratulations... we've passed the initial start point");
+						}
+						if (leftPlacementIndex == null) {
+							//it's not good enough to not be a left avoid - it also shouldn't be a <p> with an immediately preceding small or medium image left avoid.
+							if (!isLeftAvoid($(this)) && noPrevFigures($(this)) ) {
+								leftPlacementIndex = $(this).index();
+								$leftPlacementElement = $(this);
+								leftPlacementLookaheadStart = cumulativeHeight;
+								if (debug) {
+									console.log("is not a left avoid and no prev figures. ########## set placementIndex ("+leftPlacementIndex+") and lookaheadStart ("+leftPlacementLookaheadStart+") ##########");
+								}
+							} else {
+								if (debug) {
+									console.log("is a left avoid or has previous figures. continue");
+								}
+							}
+						} else {
+							if (debug) {
+								console.log("#### leftPlacementIndex already set to "+leftPlacementIndex+". looking ahead...");
+							}
+							//not null; has been set
+							if ((cumulativeHeight - leftPlacementLookaheadStart) > leftIntervalHeight) {
+								if (debug) {
+									console.log("###### THRESHOLD REACHED. LOOKAHEAD COMPLETE. END ###### (cumulativeHeight - leftPlacementLookaheadStart) ("+(cumulativeHeight-leftPlacementLookaheadStart)+") > leftIntervalHeight ("+leftIntervalHeight+").");
+								}
+								return false;
+							} else {
+								if (debug) {
+									console.log("threshold not reached: (cumulativeHeight - leftPlacementLookaheadStart) ("+(cumulativeHeight-leftPlacementLookaheadStart)+") < leftIntervalHeight ("+leftIntervalHeight+")");
+								}
+								if (isLeftAvoid($(this))) {
+									if (debug) {
+										console.log("This element is left avoid. #RESET, CONTINUE#");
+									}
+									leftPlacementIndex = null;
+									leftPlacementLookaheadStart = null;
+								}
+							}
+						}
+					}
+					//we shouldn't be counting small or medium figures towards height since their heights are reflected in the following <p> tags 
+					if (!(isLeftAvoid($(this)) && ($(this).hasClass('small') || $(this).hasClass('inline-small') || $(this).hasClass('medium') || $(this).hasClass('inline-medium') || $(this).hasClass('apart') ))) {
+						cumulativeHeight += $(this).height() + grafHeight;
+					}
+					if (debug) {
+						console.log("-------------------- set cumulativeHeight("+cumulativeHeight+") ---------------");
+						console.log("");
+					}
+				}			
+			});
+		}
+		
+		if (leftPlacementIndex != null && elementNotNearEnd($leftPlacementElement, leftPixelWindow)) { 
+			if (debug) {
+				console.log(" insert into index "+leftPlacementIndex);
+			}
+			$("#drr-container").children().eq(leftPlacementIndex).before("<div id=\""+leftModuleElementId+"\" />");
+		}
+
+		IDG.GPT.trackOmniture();
+
+		// Add Right rail module content
+		for (var i=0; i<modules.length; i++) {
+			$.get( moduleUrls[i]+"&divId="+modules[i], function( data ) {
+				var placementId = $(data).attr("data-placement-id");
+				 $( "#"+placementId ).html( data );
+			});
+		}
+
+		
+		// Add Left rail module content, if not on a collection/package page
+		if (leftPlacementIndex != null && elementNotNearEnd($leftPlacementElement, leftPixelWindow)) {
+			$.get( leftModuleUrl+"&divId="+leftModuleElementId, function( data ) {
+				var placementId = $(data).attr("data-placement-id");
+			 	$( "#"+placementId ).html( data );
+			});
+		}
+		
+		
+		
+		
+		//this needs to run once all of the modules are placed to make sure that any modules placed after page load are slated to be lazy-loaded
+		$("div.lazyload_ad_article").lazyLoadAd({
+	        threshold    : 500,         // You can set threshold on how close to the edge ad should come before it is loaded. Default is 0 (when it is visible).
+	        forceLoad    : false,       // Ad is loaded even if not visible. Default is false.
+	        onLoad       : false,       // Callback function on call ad loading
+	        onComplete   : false,       // Callback function when load is loaded
+	        timeout      : 1500,        // Timeout ad load
+	        debug        : false,       // For debug use : draw colors border depends on load status
+	        xray         : false      // For debug use : display a complete page view with ad placements
+		}) ;
+		
+		
+		function getEpoParams() {
+			var parts = document.referrer.replace(/^https?:\/\//, '').split('/');
+			var defaultCatId = 3204;
+			var defaultTypeId = 4;
+			var epoParams = "module.epo";
+
+			parts.shift();
+			
+			// From HOMEPAGE; show default typeId articles 
+			if (parts.join('/') == "" && document.referrer.indexOf(document.domain)) {
+				
+				
+				epoParams += "&typeId=" + defaultTypeId + "&referrer=home";
+				
+			}
+			// From ARTICLE: Show articles w referrer catId 
+			else if (document.referrer != undefined && document.referrer.indexOf('article') >= 0) {
+				var a = document.createElement('a');
+				a.href = document.referrer;
+				var uriParts = a.pathname.split('/');
+				a = '';
+				if (typeof uriParts[3] == 'undefined') {
+					epoParams += "&typeId=" + defaultTypeId + "&referrer=home"; // default is 'home' behavior
+				}
+				else {
+					var refCatSlug = uriParts[3];
+					epoParams += "&catSlug=" + refCatSlug + "&referrer=article";
+				}
+			}
+			// From SEARCH: Show article with catId same as current article
+			else if (document.referrer.indexOf("google") >= 0 || document.referrer.indexOf("yahoo") >= 0 || document.referrer.indexOf("bing") >= 0) {
+				var categories = [3188, 3237, 3219];
+				if (categories instanceof Array && categories.length > 0) {
+					var primaryCatId = categories[0];
+					epoParams += "&catId=" + primaryCatId + "&referrer=search";
+				}
+				else {
+					epoParams += "&typeId=" + defaultTypeId + "&referrer=home"; // default is 'home' behavior
+				}
+			}
+			// Default is to show like coming from homepage 
+			else {
+				
+				
+				epoParams += "&typeId=" + defaultTypeId + "&referrer=home";
+				 // default is 'home' behavior
+			}
+			return epoParams;
+		}
+		
+		/** 
+		 * @param jqo Original jquery object target
+		 * @param divString The div to be inserted.
+		 * @return Difference in height between original placement target and final target.
+		 * Checks first 6 elements for an allowable placement (600 pixel window).
+		 * If none, check nearby for elements that are not right avoids.
+		 * If none, place element before current target.
+		 */
+		function applyInsert(jqo, divString) { 
+			if (debug) {
+				console.log("applyInsert at top and jqo index is: " + jqo.index());
+			}
+			
+			for (var i=0; i<=6; i++) {
+				$thisElement = jqo.nextAll().andSelf().slice(i, i+1);
+				if (debug) {
+					console.log("Checking first six and i is: " + i + " and this element index is " + $thisElement.index() );
+				}
+				if ($thisElement.index() < 0) {
+					break;
+				}
+				if (allowPlacement($thisElement)) {
+					return addElement(jqo, $thisElement, divString);
+				}  
+			}
+			// If got here, no good place to put it.. just put it before one that is not right avoid! 
+			var $allowElement = null;
+			if (($allowElement = findNearbyAllow(jqo)) != null) {
+				return addElement(jqo, $allowElement, divString);
+			}
+			else {
+				// nothing good so put in first spot that is not rightReject and not followed by reject.
+				if (debug) {
+					console.log("No nearby allows so just place in first spot that is not rightReject.");
+				}
+				var numElements = jqo.nextAll().length;
+				var startIndex = jqo.index();
+				for (var i=startIndex; i<=numElements; i++) {
+					var $element = $("#drr-container").children().eq(i);
+					// This element is eligible when not null, not in placement index, and not a rightReject nor is next element 
+					if ($element != null && (placementIndex == null || placementIndex.indexOf(i) == -1)) {
+						if (!isRightReject($element) && !isRightReject($element.next())) {
+							return addElement(jqo, $element, divString);
+						}
+					}
+				}
+				if (debug) {
+					console.log("Not going to place element: return 0.");
+				}
+				return 0;
+			} 
+		}
+		
+		/**
+		 * @param jqo Original jquery object
+		 * @param allowElement Element that is good placement for module/ad
+		 * @param divString The div to be inserted before the good element
+		 * @return placementHeightDiff Diff in height between original placement target and current target.
+		 *
+		 * If element is not too close to the end the insert the div before allowable element. 
+		 * Add element index to placementIndex to keep track of which elements already have placements
+		 */
+		function addElement(jqo, allowElement, divString) {
+			var offset = allowElement.index() - jqo.index();
+			if (debug) {
+				console.log("addElement: jqo index is " + jqo.index() + " allowElement index is " + allowElement.index());
+			}
+			
+			if (elementNotNearEnd(allowElement, rightPixelWindow)) {
+				allowElement.before(divString);
+				if (debug) {
+					console.log("addElement: Adding " + allowElement.index() + " to placementIndex.");
+				}
+				placementIndex.push(allowElement.index());
+				if (offset == 0) {
+					return 0;
+				}
+				else {
+					return getHeightDifference(jqo,allowElement);
+				}
+
+			}
+			else {
+				if (debug) {
+					console.log("addElement: Near the end so do NOT add.");
+				}
+				return 0;
+			} 
+		}
+		
+		function getHeightDifference(jqo,allowElement) {
+			var offset = allowElement.index() - jqo.index();
+			var height = 0;
+			var children = null;
+			if (offset > 0) {
+				children = $("#drr-container").children().slice(jqo.index(), allowElement.index() );
+			}
+			else {
+				children = $("#drr-container").children().slice(allowElement.index(), jqo.index());
+			
+			}
+			if (children != null) {
+				children.each(function(i) {
+					if (debug) {
+						console.log("About to add this element's height to heigh diff offset");
+						console.log($(this));
+					}
+		   			height += $(this).height() + grafHeight;
+				});
+			}
+			if (offset < 0) {
+				height *= -1;
+			}
+			if (debug) {
+				console.log("getHeightDifference: offset was " + offset + " and height diff is : " + height);
+			}
+			
+			return height;
+		}
+		
+		/** 
+		 * Return true if next 550 pixels do not include a right avoid; false otherwise.
+		 */
+		function allowPlacement(jqo) {
+			$testElement = jqo;
+			var height = 0;
+			while (height < 550) {
+				if ($testElement != null && !isRightAvoid($testElement)) {
+					if (debug) {
+						console.log("allowPlacement: this element height is " + $testElement.height() + " and index is: " + $testElement.index());
+					}
+					height += $testElement.height() + grafHeight;
+				}
+				else {
+					return false;
+				}
+				$testElement = $testElement.next();
+			}
+			return true;
+		}
+		
+		/** 
+		 * Look ahead and back for element that is not rightAvoid
+		 * Return the index of the closest allowable element or null if none found.
+		 */
+		function findNearbyAllow(jqo) {
+			if (debug) {
+				console.log("In nearby allow so could not find 600 px window.");
+			}
+			// Check current element first 
+			if (!isRightAvoid(jqo) && !isRightAvoid(jqo.next())) {
+				return jqo;
+			}
+			for (var i=1; i<=2; i++) {
+				if (!isRightAvoid(jqo.nextAll().slice(i-1, i)) && !isRightAvoid(jqo.nextAll().slice(i, i+1)) ) {
+					return jqo.nextAll().slice(i-1, i);
+				}  
+				if (!isRightAvoid(jqo.prevAll().slice(i-1, i)) && !isRightAvoid(jqo.prevAll().slice(i, i+1))  ) {
+					return jqo.prevAll().slice(i, i+1);
+				}  
+			}
+			return null;
+		}
+		 
+		/**
+		* Return true if this is avoid element or already has module/ad placed near it
+		*/
+		function isRightAvoid(jqo) {
+			if (placementIndex == null || placementIndex.indexOf(parseInt(jqo.index())) == -1) {
+				if (jqo.is("pre") && jqo.height() > 300) {
+					if (debug) {
+						console.log("isRightAvoid: found pre. return true");
+					}
+					return true;
+				}
+				if (jqo.is("figure") && jqo.hasClass('large')) {
+					if (debug) {
+						console.log("isRightAvoid: found figure.large return true");
+					}
+					return true;
+				}
+				if (jqo.is("figure") && jqo.hasClass('medium') && jqo.hasClass('inline')) {
+					if (debug) {
+						console.log("isRightAvoid: found figure has class medium and inline.");
+					}
+					return true;
+				}
+				
+				if (jqo.is('div') && jqo.hasClass('table-wrapper')) {
+					if (debug) {
+						console.log("isRightAvoid: found div with class table-wrapper");
+					}
+					return true;
+				}
+				if (jqo.is('aside')) {
+					if (jqo.hasClass('sidebar') && !jqo.hasClass('medium')) {
+						if (debug) {
+							console.log("isRightAvoid: found aside with class sidebar, without class medium");
+						}
+						return true;
+					}
+					if (jqo.hasClass('statsTable')) {
+						if (debug) {
+							console.log("isRightAvoid: found aside with class statsTable");
+						}
+						return true;
+					}
+				}
+				if (jqo.hasClass('download-asset')) {
+					if (debug) {
+						console.log("isRightAvoid: found class download-asset return true");
+					}
+					return true;
+				}
+				if (jqo.hasClass('tableLarge')) {
+					if (debug) {
+						console.log("isRightAvoid: found class tableLarge return true");
+					}
+					return true;
+				}
+				if (jqo.hasClass('reject')) {
+					if (debug) {
+						console.log("isRightAvoid: found class reject. return true");
+					}
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		// Return true if element has class 'reject': will not place drr modules/ads next to these elements
+		function isRightReject(jqo) {
+			console.log("in isRightReject");
+			if (jqo != null) {
+				if (jqo.hasClass("reject")) {
+					if (debug) {
+						console.log("isRightReject: found 'reject' class");
+					}
+					return true;
+				}
+				return false;
+			}
+			return false;
+		}
+		 
+		// Returns true if height of all elements after this one is more than 500; false otherwise 
+		function elementNotNearEnd(element, pixelWindow) {
+			if (pixelWindow == null) {
+				pixelWindow = 500;
+			}
+			if (element == null) {
+				return false;
+			}
+			var remainingHeight = 0;
+			var children = $("#drr-container").children().slice(element.index());
+			if (children == null) {
+				return false;
+			}
+			children.each(function(i){
+			   remainingHeight += $(this).height();
+			});
+			if ( remainingHeight > pixelWindow) {
+				return true;
+			}
+			else {
+				if (debug) {
+					console.log("Element too close to end. Remaining height is: " + remainingHeight + " and window is " + pixelWindow);	 
+				}
+				return false;
+			}
+		}
+		
+		/**
+		* Return true if need to avoid this element when placing left module.
+		*/
+		function isLeftAvoid(jqo) {
+			if (jqo.is("figure")) {
+				if (debug) {
+					console.log("isLeftAvoid: found figure. return true");
+				}
+				return true;
+			}
+			if (jqo.is("aside.pullquote")) {
+				if (debug) {
+					console.log("isLeftAvoid: found pullquote. return true");
+				}
+				return true;
+			}
+			if (jqo.is("pre")) {
+				if (debug) {
+					console.log("isLeftAvoid: found pre. return true");
+				}
+				return true;
+			}
+			if (jqo.is("div.gist")) {
+				if (debug) {
+					console.log("isLeftAvoid: found github code block. return true");
+				}
+				return true;
+			}
+
+			if (jqo.is("aside") && jqo.hasClass("sidebar") && jqo.hasClass("medium")) {
+				if (debug) {
+					console.log("isLeftAvoid: found medium sidebar. return true");
+				}
+				return true;
+			}
+
+			if (jqo.hasClass("statsTable")) {
+				if (debug) {
+					console.log("isLeftAvoid: found class statsTable. return true");
+				}
+				return true;
+			}
+			return false;
+		}
+		
+		/**
+		 * return true if there are no figures before the target placement that might bleed down into placement element
+		 */
+		function noPrevFigures($originalTarget) {
+			var targetIndex = $originalTarget.index();
+			var numElementsLookBack = 5;
+			var figureIndex = null;
+			var figureHeight = null;
+			var startIndex = targetIndex - numElementsLookBack < 0 ? 0 : targetIndex - numElementsLookBack; 
+			
+			$("#drr-container").children().slice(startIndex, targetIndex).each(function(index, value) {
+				if ($(this).is(':visible')) {
+					if (($(this).is("figure") && !$(this).hasClass("large")) || $(this).hasClass("statsTable")) {
+						figureIndex = $(this).index();
+						figureHeight = $(this).height();
+						if (debug) {
+							console.log("noPrevFigures: Found a figure and it's index is: " + figureIndex + " it's height is: " + figureHeight);
+						}
+					}
+				}
+			});
+			if (figureIndex != null) {
+				startIndex = figureIndex+1;
+				var heightDiff = 0;
+				$("#drr-container").children().slice(startIndex, targetIndex).each(function(index, value) {
+					if ($(this).is(':visible')) {
+						heightDiff += $(this).height();
+					}
+				});
+				if ( heightDiff < figureHeight) {
+					if (debug) {
+						console.log("noPrevFigures: figureHeight is: " + figureHeight + " and heightDiff is " + heightDiff + " so return false.");
+					}
+					return false;
+				}
+			}
+			return true;
+		}
+		
+	}
+</script>
+
+
+
+
+
+	
+	
+		
+	
+
+<div id="drr-container" itemprop="articleBody">
+
+	
+	<p>JavaServer Pages (JSP) is a more flexible technology than servlets because it can respond to dynamic changes at runtime. Can you imagine a common Java class that has this dynamic capability too? It would be interesting if you could modify the implementation of a service without redeploying it and update your application on the fly.</p><p>The article explains how to write dynamic Java code. It discusses runtime source code compilation, class reloading, and the use of the Proxy design pattern to make modifications to a dynamic class transparent to its caller.</p><div class="related-promo-wrapper">
+		<div class="promo apart">
+			<div class="hed">More like this</div>
+	    	<ul class="">
+		    	
+		    		
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="clearfix  ">
+	
+	<div class="item">   	
+	   	
+	   	
+		<div class="title"><a href="http://www.javaworld.com/article/2071753/mobile-java/push-messages-that-automatically-launch-a-java-mobile-application.html">Push messages that automatically launch a Java mobile application</a></div>
+	</div>
+</li>
+		    	
+		    		
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="clearfix  ">
+	
+	<div class="item">   	
+	   	
+	   	
+		<div class="title"><a href="http://www.javaworld.com/article/2071787/soa/mustang--the-fast-track-to-web-services.html">Mustang: The fast track to Web services</a></div>
+	</div>
+</li>
+		    	
+		    		
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="clearfix  ">
+	
+	<div class="item">   	
+	   	
+	   	
+		<div class="title"><a href="http://www.javaworld.com/article/2071739/java-web-development/leverage-spring-web-development-with-offspring.html">Leverage Spring Web development with Offspring</a></div>
+	</div>
+</li>
+		    	
+		    </ul>
+		</div>
+		<div class="handle"></div>
+	</div><h3>An example of dynamic Java code</h3><p>Let's start with an example of dynamic Java code that illustrates what true dynamic code means and also provides some context for further discussions. Please find this example's complete source code in <a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#resources">Resources</a>.</p><p>The example is a simple Java application that depends on a service called Postman. The Postman service is described as a Java interface and contains only one method, <code>deliverMessage()</code>:</p><pre class="prettyprint prettyprinted" style=""><span class="pln"> </span><code><span class="kwd">public</span><span class="pln"> </span><span class="kwd">interface</span><span class="pln"> </span><span class="typ">Postman</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+    </span><span class="kwd">void</span><span class="pln"> deliverMessage</span><span class="pun">(</span><span class="typ">String</span><span class="pln"> msg</span><span class="pun">);</span><span class="pln">
+</span><span class="pun">}</span><span class="pln">
+</span></code>
+</pre><p>A simple implementation of this service prints messages to the console. The implementation class is the dynamic code. This class, <code>PostmanImpl</code>, is just a normal Java class, except it deploys with its source code instead of its compiled binary code:</p><pre class="prettyprint prettyprinted" style=""><span class="pln"> </span><code><p><span class="kwd">public</span><span class="pln"> </span><span class="kwd">class</span><span class="pln"> </span><span class="typ">PostmanImpl</span><span class="pln"> </span><span class="kwd">implements</span><span class="pln"> </span><span class="typ">Postman</span><span class="pln"> </span><span class="pun">{</span></p><p><span class="pln">    </span><span class="kwd">private</span><span class="pln"> </span><span class="typ">PrintStream</span><span class="pln"> output</span><span class="pun">;</span><span class="pln">
+    
+    </span><span class="kwd">public</span><span class="pln"> </span><span class="typ">PostmanImpl</span><span class="pun">()</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+        output </span><span class="pun">=</span><span class="pln"> </span><span class="typ">System</span><span class="pun">.</span><span class="kwd">out</span><span class="pun">;</span><span class="pln">
+    </span><span class="pun">}</span><span class="pln">
+    
+    </span><span class="kwd">public</span><span class="pln"> </span><span class="kwd">void</span><span class="pln"> deliverMessage</span><span class="pun">(</span><span class="typ">String</span><span class="pln"> msg</span><span class="pun">)</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+        output</span><span class="pun">.</span><span class="pln">println</span><span class="pun">(</span><span class="str">"[Postman] "</span><span class="pln"> </span><span class="pun">+</span><span class="pln"> msg</span><span class="pun">);</span><span class="pln">
+        output</span><span class="pun">.</span><span class="pln">flush</span><span class="pun">();</span><span class="pln">
+    </span><span class="pun">}</span><span class="pln">
+</span><span class="pun">}</span><span class="pln">
+</span></p></code>
+</pre><p>The application that uses the Postman service appears below. In the <code>main()</code> method, an infinite loop reads string messages from the command line and delivers them through the Postman service:</p><pre class="prettyprint prettyprinted" style=""><span class="pln"> </span><code><p><span class="kwd">public</span><span class="pln"> </span><span class="kwd">class</span><span class="pln"> </span><span class="typ">PostmanApp</span><span class="pln"> </span><span class="pun">{</span></p><p><span class="pln">    </span><span class="kwd">public</span><span class="pln"> </span><span class="kwd">static</span><span class="pln"> </span><span class="kwd">void</span><span class="pln"> main</span><span class="pun">(</span><span class="typ">String</span><span class="pun">[]</span><span class="pln"> args</span><span class="pun">)</span><span class="pln"> </span><span class="kwd">throws</span><span class="pln"> </span><span class="typ">Exception</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+        </span><span class="typ">BufferedReader</span><span class="pln"> sysin </span><span class="pun">=</span><span class="pln"> </span><span class="kwd">new</span><span class="pln"> </span><span class="typ">BufferedReader</span><span class="pun">(</span><span class="kwd">new</span><span class="pln"> </span><span class="typ">InputStreamReader</span><span class="pun">(</span><span class="typ">System</span><span class="pun">.</span><span class="kwd">in</span><span class="pun">));</span></p><p><span class="pln">        </span><span class="com">// Obtain a Postman instance</span><span class="pln">
+        </span><span class="typ">Postman</span><span class="pln"> postman </span><span class="pun">=</span><span class="pln"> getPostman</span><span class="pun">();</span></p><p><span class="pln">        </span><span class="kwd">while</span><span class="pln"> </span><span class="pun">(</span><span class="kwd">true</span><span class="pun">)</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+            </span><span class="typ">System</span><span class="pun">.</span><span class="kwd">out</span><span class="pun">.</span><span class="kwd">print</span><span class="pun">(</span><span class="str">"Enter a message: "</span><span class="pun">);</span><span class="pln">
+            </span><span class="typ">String</span><span class="pln"> msg </span><span class="pun">=</span><span class="pln"> sysin</span><span class="pun">.</span><span class="pln">readLine</span><span class="pun">();</span><span class="pln">
+            postman</span><span class="pun">.</span><span class="pln">deliverMessage</span><span class="pun">(</span><span class="pln">msg</span><span class="pun">);</span><span class="pln">
+        </span><span class="pun">}</span><span class="pln">
+    </span><span class="pun">}</span></p><p><span class="pln">    </span><span class="kwd">private</span><span class="pln"> </span><span class="kwd">static</span><span class="pln"> </span><span class="typ">Postman</span><span class="pln"> getPostman</span><span class="pun">()</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+        </span><span class="com">// Omit for now, will come back later</span><span class="pln">
+    </span><span class="pun">}</span><span class="pln">
+ </span><span class="pun">}</span><span class="pln">
+</span></p></code>
+</pre><div class="apart ad lazyload_ad_article"><code type="text/javascript"><!--IDG.GPT.IMUCounter = IDG.GPT.IMUCounter + 1;IDG.GPT.addDisplayedAd(IDG.GPT.getIMUSlotName(), "true");IDG.GPT.addLazyloadedAd(IDG.GPT.getIMUSlotName(), "true");document.write('<div id="' + IDG.GPT.getIMUSlotName() + '" class="">');googletag.cmd.push(function() {googletag.pubads().display(IDG.GPT.unitName, [[320,50],[300,250],[300,50]], IDG.GPT.getIMUSlotName()).setTargeting("pos", IDG.GPT.getIMUSlotName());});document.write('</div>');//--></code></div><p>Execute the application, enter some messages, and you will see outputs in the console such as the following (you can <a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#resources">download</a> the example and run it yourself):</p><pre class="prettyprint prettyprinted" style=""><span class="pln"> </span><code><span class="pun">[</span><span class="typ">DynaCode</span><span class="pun">]</span><span class="pln"> </span><span class="typ">Init</span><span class="pln"> </span><span class="kwd">class</span><span class="pln"> sample</span><span class="pun">.</span><span class="typ">PostmanImpl</span><span class="pln">
+</span><span class="typ">Enter</span><span class="pln"> a message</span><span class="pun">:</span><span class="pln"> hello world
+</span><span class="pun">[</span><span class="typ">Postman</span><span class="pun">]</span><span class="pln"> hello world
+</span><span class="typ">Enter</span><span class="pln"> a message</span><span class="pun">:</span><span class="pln"> what a nice day</span><span class="pun">!</span><span class="pln">
+</span><span class="pun">[</span><span class="typ">Postman</span><span class="pun">]</span><span class="pln"> what a nice day</span><span class="pun">!</span><span class="pln">
+</span><span class="typ">Enter</span><span class="pln"> a message</span><span class="pun">:</span><span class="pln"> 
+</span></code>
+</pre><p>Everything is straightforward except for the first line, which indicates that the class <code>PostmanImpl</code> is compiled and loaded.</p><p>Now we are ready to see something dynamic. Without stopping the application, let's modify <code>PostmanImpl</code>'s source code. The new implementation delivers all the messages to a text file, instead of the console:</p><pre class="prettyprint prettyprinted" style=""><span class="pln"> </span><code><p><span class="com">// MODIFIED VERSION</span><span class="pln">
+</span><span class="kwd">public</span><span class="pln"> </span><span class="kwd">class</span><span class="pln"> </span><span class="typ">PostmanImpl</span><span class="pln"> </span><span class="kwd">implements</span><span class="pln"> </span><span class="typ">Postman</span><span class="pln"> </span><span class="pun">{</span></p><p><span class="pln">    </span><span class="kwd">private</span><span class="pln"> </span><span class="typ">PrintStream</span><span class="pln"> output</span><span class="pun">;</span><span class="pln">
+    
+    </span><span class="com">// Start of modification</span><span class="pln">
+    </span><span class="kwd">public</span><span class="pln"> </span><span class="typ">PostmanImpl</span><span class="pun">()</span><span class="pln"> </span><span class="kwd">throws</span><span class="pln"> </span><span class="typ">IOException</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+        output </span><span class="pun">=</span><span class="pln"> </span><span class="kwd">new</span><span class="pln"> </span><span class="typ">PrintStream</span><span class="pun">(</span><span class="kwd">new</span><span class="pln"> </span><span class="typ">FileOutputStream</span><span class="pun">(</span><span class="str">"msg.txt"</span><span class="pun">));</span><span class="pln">
+    </span><span class="pun">}</span><span class="pln">
+    </span><span class="com">// End of modification</span></p><p><span class="com">    public void deliverMessage(String msg) {</span><span class="pln">
+        output</span><span class="pun">.</span><span class="pln">println</span><span class="pun">(</span><span class="str">"[Postman] "</span><span class="pln"> </span><span class="pun">+</span><span class="pln"> msg</span><span class="pun">);</span></p><p><span class="pln">        output</span><span class="pun">.</span><span class="pln">flush</span><span class="pun">();</span><span class="pln">
+    </span><span class="pun">}</span><span class="pln">
+</span><span class="pun">}</span><span class="pln">
+</span></p></code>
+</pre><p>Shift back to the application and enter more messages. What will happen? Yes, the messages go to the text file now. Look at the console:</p><pre class="prettyprint prettyprinted" style=""><span class="pln"> </span><code><span class="pun">[</span><span class="typ">DynaCode</span><span class="pun">]</span><span class="pln"> </span><span class="typ">Init</span><span class="pln"> </span><span class="kwd">class</span><span class="pln"> sample</span><span class="pun">.</span><span class="typ">PostmanImpl</span><span class="pln">
+</span><span class="typ">Enter</span><span class="pln"> a message</span><span class="pun">:</span><span class="pln"> hello world
+</span><span class="pun">[</span><span class="typ">Postman</span><span class="pun">]</span><span class="pln"> hello world
+</span><span class="typ">Enter</span><span class="pln"> a message</span><span class="pun">:</span><span class="pln"> what a nice day</span><span class="pun">!</span><span class="pln">
+</span><span class="pun">[</span><span class="typ">Postman</span><span class="pun">]</span><span class="pln"> what a nice day</span><span class="pun">!</span><span class="pln">
+</span><span class="typ">Enter</span><span class="pln"> a message</span><span class="pun">:</span><span class="pln"> I wanna go to the text file</span><span class="pun">.</span><span class="pln">
+</span><span class="pun">[</span><span class="typ">DynaCode</span><span class="pun">]</span><span class="pln"> </span><span class="typ">Init</span><span class="pln"> </span><span class="kwd">class</span><span class="pln"> sample</span><span class="pun">.</span><span class="typ">PostmanImpl</span><span class="pln">
+</span><span class="typ">Enter</span><span class="pln"> a message</span><span class="pun">:</span><span class="pln"> me too</span><span class="pun">!</span><span class="pln">
+</span><span class="typ">Enter</span><span class="pln"> a message</span><span class="pun">:</span><span class="pln"> 
+</span></code>
+</pre><div id="drr-mod-0">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+	
+		
+	
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="promo apart most-popular" data-placement-id="drr-mod-0">
+
+
+
+
+   
+    <div class="hed">Popular on JavaWorld</div>
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<ul>
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+							
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+<li class="with-image">
+	
+		<a href="http://www.javaworld.com/article/2092260/java-se/java-programming-with-lambda-expressions.html"><img class="smallImage  imgId100004167 " src="./Add dynamic Java code to your application   JavaWorld_files/204675-java-ne-100004167-small.jpg" itemprop="image"></a>
+	
+	<div class="item">
+		
+				
+					
+		
+		<div class="title"><a href="http://www.javaworld.com/article/2092260/java-se/java-programming-with-lambda-expressions.html">Java programming with lambda expressions</a></div>
+	</div>
+</li>
+	
+	
+
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+							
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+<li>
+	
+	<div class="item">
+		
+				
+					
+		
+		<div class="title"><a href="http://www.javaworld.com/article/2077837/java-se/hello--osgi--part-1--bundles-for-beginners.html">Hello, OSGi, Part 1: Bundles for beginners</a></div>
+	</div>
+</li>
+	
+	
+
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+							
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+<li class="with-image">
+	
+		<a href="http://www.javaworld.com/article/2094847/enterprise-java/review-10-javascript-editors-and-ides-put-to-the-test.html"><img class="carousel.idgeImage  imgId100354413 " src="./Add dynamic Java code to your application   JavaWorld_files/javascript-100354413-carousel.idge.png" alt="javascript" itemprop="image"></a>
+	
+	<div class="item">
+		
+				
+					
+		
+		<div class="title"><a href="http://www.javaworld.com/article/2094847/enterprise-java/review-10-javascript-editors-and-ides-put-to-the-test.html">Review: 10 JavaScript editors and IDEs put to the test</a></div>
+	</div>
+</li>
+	
+	
+
+				
+				
+			
+		
+	</ul>
+
+
+
+
+</div><div class="handle"></div>
+
+
+
+</div><p>Notice <code>[DynaCode] Init class sample.PostmanImpl</code> appears again, indicating that the class <code>PostmanImpl</code> is recompiled and reloaded. If you check the text file msg.txt (under the working directory), you will see the following:</p><pre class="prettyprint prettyprinted" style=""><span class="pln"> </span><code><span class="pun">[</span><span class="typ">Postman</span><span class="pun">]</span><span class="pln"> I wanna go to the text file</span><span class="pun">.</span><span class="pln">
+</span><span class="pun">[</span><span class="typ">Postman</span><span class="pun">]</span><span class="pln"> me too</span><span class="pun">!</span><span class="pln">
+</span></code>
+</pre><div id="drr-left">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="apart-alt whitepaper" data-placement-id="drr-left">
+     	
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+				
+			
+			
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="hed">Featured Resource</div>
+
+
+		
+		
+		
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+		
+		
+			
+			<figure class="well-img">
+				  <div class="sized-img-teaser">
+					
+					  
+					    <a href="http://resources.javaworld.com/ccd/assets/61678/detail"><img class="smallImage  imgId100258830 " src="./Add dynamic Java code to your application   JavaWorld_files/ast-0112622_citrix_10_essential_elements_for_a_secure_enterprise_mobility_strategy_final-100258830-small.png" itemprop="image"></a>
+					  
+					  
+					
+				  </div>
+				</figure>
+			
+		
+	
+
+
+
+	<div class="subhed">Presented by Citrix Systems</div>
+
+<div class="title">
+	<a href="http://resources.javaworld.com/ccd/assets/61678/detail">10 essential elements for a secure enterprise mobility strategy</a>
+</div>
+<p>Best practices for protecting sensitive business information while making people productive from</p>
+<a href="http://resources.javaworld.com/ccd/assets/61678/detail" class="learn">Learn More</a>
+				
+				
+			
+		
+	
+
+
+ </div>
+
+</div><p>Amazing, right? We are able to update the Postman service at runtime, and the change is completely transparent to the application. (Notice the application is using the same Postman instance to access both versions of the implementations.)</p><h3>Four steps towards dynamic code</h3><p>Let me reveal what's going on behind the scenes. Basically, there are four steps to make Java code dynamic:</p><ul><li>Deploy selected source code and monitor file changes</li><li>Compile Java code at runtime</li><li>Load/reload Java class at runtime</li><li>Link the up-to-date class to its caller</li></ul><h3>Deploy selected source code and monitor file changes</h3><p>To start writing some dynamic code, the first question we have to answer is, "Which part of the code should be dynamic—the whole application or just some of the classes?" Technically, there are few restrictions. You can load/reload any Java class at runtime. But in most cases, only part of the code needs this level of flexibility.</p><p>The Postman example demonstrates a typical pattern on selecting dynamic classes. No matter how a system is composed, in the end, there will be building blocks such as services, subsystems, and components. These building blocks are relatively independent, and they expose functionalities to each other via predefined interfaces. Behind an interface, it is the implementation that is free to change as long as it conforms to the contract defined by the interface. This is exactly the quality we need for dynamic classes. So simply put: <em>Choose the implementation class to be the dynamic class</em>.</p><div id="drr-mod-1">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+	
+		
+	
+		
+	
+		
+	
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+	
+		
+			
+			
+		
+	
+	
+	
+	
+
+
+<div class="promo apart epo-promo" data-placement-id="drr-mod-1">
+	<div class="hed">Recent Java How-To<span class="lowercase">s</span>
+		
+	</div>
+	<ul>
+		
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	
+	<div class="item">	
+			
+		
+		<div class="title"><a href="http://www.javaworld.com/article/2597545/java-language/autoboxing-unboxing-and-nosuchmethoderror.html">Autoboxing, Unboxing, and NoSuchMethodError</a></div>
+	</div>
+</li>
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="with-image">
+	
+		<a href="http://www.javaworld.com/article/2465421/core-java/core-java-shipil-v-on-writing-good-benchmarks-java-vs-scala.html"><img class="carousel.idgeImage  imgId100372335 " src="./Add dynamic Java code to your application   JavaWorld_files/java-gears-100372335-carousel.idge.png" alt="java gears" itemprop="image"></a>
+	
+	<div class="item">	
+			
+		
+		<div class="title"><a href="http://www.javaworld.com/article/2465421/core-java/core-java-shipil-v-on-writing-good-benchmarks-java-vs-scala.html">Shipilёv on writing good benchmarks -- Java vs Scala</a></div>
+	</div>
+</li>
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="with-image">
+	
+		<a href="http://www.javaworld.com/article/2458888/spring-framework/open-source-java-projects-spring-batch.html"><img class="carousel.idgeImage  imgId100363947 " src="./Add dynamic Java code to your application   JavaWorld_files/integration-100363947-carousel.idge.png" alt="integration" itemprop="image"></a>
+	
+	<div class="item">	
+			
+		
+		<div class="title"><a href="http://www.javaworld.com/article/2458888/spring-framework/open-source-java-projects-spring-batch.html">Open source Java projects: Spring Batch</a></div>
+	</div>
+</li>
+				
+				
+			
+		
+	
+
+
+		
+	</ul>
+</div>
+<div class="handle"></div>
+
+</div><p>For the rest of the article, we'll make the following assumptions about the chosen dynamic classes:</p><ul><li>The chosen dynamic class implements some Java interface to expose functionality</li><li>The chosen dynamic class's implementation does not hold any stateful information about its client (similar to the stateless session bean), so the instances of the dynamic class can replace each other</li></ul><p>Please note that these assumptions are not prerequisites. They exist just to make the realization of dynamic code a bit easier so we can focus more on the ideas and mechanisms.</p><p>With the selected dynamic classes in mind, deploying the source code is an easy task. Figure 1 shows the file structure of the Postman example.</p><figure class="center"><img height="134" src="./Add dynamic Java code to your application   JavaWorld_files/jw-0612-dynamic1-100156079-orig.gif" width="245"><figcaption>Figure 1. The file structure of the Postman example</figcaption></figure><p>We know "src" is source and "bin" is binary. One thing worth noting is the dynacode directory, which holds the source files of dynamic classes. Here in the example, there's only one file—PostmanImpl.java. The bin and dynacode directories are required to run the application, while src is not necessary for deployment.</p><p>Detecting file changes can be achieved by comparing modification timestamps and file sizes. For our example, a check to PostmanImpl.java is performed every time a method is invoked on the <code>Postman</code> interface. Alternatively, you may spawn a daemon thread in the background to regularly check the file changes. That may result in better performance for large-scale applications.</p><h3>Compile Java code at runtime</h3><div class="apart ad lazyload_ad_article"><code type="text/javascript"><!--IDG.GPT.IMUCounter = IDG.GPT.IMUCounter + 1;IDG.GPT.addDisplayedAd(IDG.GPT.getIMUSlotName(), "true");IDG.GPT.addLazyloadedAd(IDG.GPT.getIMUSlotName(), "true");document.write('<div id="' + IDG.GPT.getIMUSlotName() + '" class="">');googletag.cmd.push(function() {googletag.pubads().display(IDG.GPT.unitName, [[320,50],[300,250],[300,50]], IDG.GPT.getIMUSlotName()).setTargeting("pos", IDG.GPT.getIMUSlotName());});document.write('</div>');//--></code></div><p>After a source code change is detected, we come to the compilation issue. By delegating the real job to an existing Java compiler, runtime compilation can be a piece of cake. Many Java compilers are available for use, but in this article, we use the Javac compiler included in Sun's Java Platform, Standard Edition (Java SE is Sun's new name for J2SE).</p><p>At the minimum, you can compile a Java file with just one statement, providing that the tools.jar, which contains the Javac compiler, is on the classpath (you can find the tools.jar under &lt;JDK_HOME&gt;/lib/):</p><pre class="prettyprint prettyprinted" style=""><span class="pln"> </span><code><span class="pln">  </span><span class="kwd">int</span><span class="pln"> errorCode </span><span class="pun">=</span><span class="pln"> com</span><span class="pun">.</span><span class="pln">sun</span><span class="pun">.</span><span class="pln">tools</span><span class="pun">.</span><span class="pln">javac</span><span class="pun">.</span><span class="typ">Main</span><span class="pun">.</span><span class="pln">compile</span><span class="pun">(</span><span class="kwd">new</span><span class="pln"> </span><span class="typ">String</span><span class="pun">[]</span><span class="pln"> </span><span class="pun">{</span><span class="pln">
+            </span><span class="str">"-classpath"</span><span class="pun">,</span><span class="pln"> </span><span class="str">"bin"</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"-d"</span><span class="pun">,</span><span class="pln"> </span><span class="str">"/temp/dynacode_classes"</span><span class="pun">,</span><span class="pln">
+            </span><span class="str">"dynacode/sample/PostmanImpl.java"</span><span class="pln"> </span><span class="pun">});</span><span class="pln">
+</span></code>
+</pre><p>The class <code>com.sun.tools.javac.Main</code> is the programming interface of the Javac compiler. It provides static methods to compile Java source files. Executing the above statement has the same effect as running <code>javac</code> from the command line with the same arguments. It compiles the source file dynacode/sample/PostmanImpl.java using the specified classpath bin and outputs its class file to the destination directory /temp/dynacode_classes. An integer returns as the error code. Zero means success; any other number indicates something has gone wrong.</p><p>The <code>com.sun.tools.javac.Main</code> class also provides another <code>compile()</code> method that accepts an additional <code>PrintWriter</code> parameter, as shown in the code below. Detailed error messages will be written to the <code>PrintWriter</code> if compilation fails.</p><pre class="prettyprint prettyprinted" style=""><span class="pln"> </span><code><span class="pln">  </span><span class="com">// Defined in com.sun.tools.javac.Main</span><span class="pln">
+    </span><span class="kwd">public</span><span class="pln"> </span><span class="kwd">static</span><span class="pln"> </span><span class="kwd">int</span><span class="pln"> compile</span><span class="pun">(</span><span class="typ">String</span><span class="pun">[]</span><span class="pln"> args</span><span class="pun">);</span><span class="pln">
+    </span><span class="kwd">public</span><span class="pln"> </span><span class="kwd">static</span><span class="pln"> </span><span class="kwd">int</span><span class="pln"> compile</span><span class="pun">(</span><span class="typ">String</span><span class="pun">[]</span><span class="pln"> args</span><span class="pun">,</span><span class="pln"> </span><span class="typ">PrintWriter</span><span class="pln"> </span><span class="kwd">out</span><span class="pun">);</span><span class="pln">
+</span></code>
+</pre><p>I assume most developers are familiar with the Javac compiler, so I'll stop here. For more information about how to use the compiler, please refer to <a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#resources">Resources</a>.</p><h3>Load/reload Java class at runtime</h3><p>The compiled class must be loaded before it takes effect. Java is flexible about class loading. It defines a comprehensive class-loading mechanism and provides several implementations of classloaders. (For more information on class loading, see <a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#resources">Resources</a>.)</p><p>The sample code below shows how to load and reload a class. The basic idea is to load the dynamic class using our own <code>URLClassLoader</code>. Whenever the source file is changed and recompiled, we discard the old class (for garbage collection later) and create a new <code>URLClassLoader</code> to load the class again.</p><pre class="prettyprint prettyprinted" style=""><span class="pln"> </span><code><p><span class="com">// The dir contains the compiled classes.</span><span class="pln">
+    </span><span class="typ">File</span><span class="pln"> classesDir </span><span class="pun">=</span><span class="pln"> </span><span class="kwd">new</span><span class="pln"> </span><span class="typ">File</span><span class="pun">(</span><span class="str">"/temp/dynacode_classes/"</span><span class="pun">);</span></p><p><span class="pln">    </span><span class="com">// The parent classloader</span><span class="pln">
+    </span><span class="typ">ClassLoader</span><span class="pln"> parentLoader </span><span class="pun">=</span><span class="pln"> </span><span class="typ">Postman</span><span class="pun">.</span><span class="kwd">class</span><span class="pun">.</span><span class="pln">getClassLoader</span><span class="pun">();</span></p><p><span class="pln">    </span><span class="com">// Load class "sample.PostmanImpl" with our own classloader.</span><span class="pln">
+    </span><span class="typ">URLClassLoader</span><span class="pln"> loader1 </span><span class="pun">=</span><span class="pln"> </span><span class="kwd">new</span><span class="pln"> </span><span class="typ">URLClassLoader</span><span class="pun">(</span><span class="pln">
+            </span><span class="kwd">new</span><span class="pln"> URL</span><span class="pun">[]</span><span class="pln"> </span><span class="pun">{</span><span class="pln"> classesDir</span><span class="pun">.</span><span class="pln">toURL</span><span class="pun">()</span><span class="pln"> </span><span class="pun">},</span><span class="pln"> parentLoader</span><span class="pun">);</span><span class="pln">
+    </span><span class="typ">Class</span><span class="pln"> cls1 </span><span class="pun">=</span><span class="pln"> loader1</span><span class="pun">.</span><span class="pln">loadClass</span><span class="pun">(</span><span class="str">"sample.PostmanImpl"</span><span class="pun">);</span><span class="pln">
+    </span><span class="typ">Postman</span><span class="pln"> postman1 </span><span class="pun">=</span><span class="pln"> </span><span class="pun">(</span><span class="typ">Postman</span><span class="pun">)</span><span class="pln"> cls1</span><span class="pun">.</span><span class="pln">newInstance</span><span class="pun">();</span></p><p><span class="pln">    </span><span class="com">/*
+     * Invoke on postman1 ...
+     * Then PostmanImpl.java is modified and recompiled.
+     */</span></p><p><span class="pln">    </span><span class="com">// Reload class "sample.PostmanImpl" with a new classloader.</span><span class="pln">
+    </span><span class="typ">URLClassLoader</span><span class="pln"> loader2 </span><span class="pun">=</span><span class="pln"> </span><span class="kwd">new</span><span class="pln"> </span><span class="typ">URLClassLoader</span><span class="pun">(</span><span class="pln">
+            </span><span class="kwd">new</span><span class="pln"> URL</span><span class="pun">[]</span><span class="pln"> </span><span class="pun">{</span><span class="pln"> classesDir</span><span class="pun">.</span><span class="pln">toURL</span><span class="pun">()</span><span class="pln"> </span><span class="pun">},</span><span class="pln"> parentLoader</span><span class="pun">);</span><span class="pln">
+    </span><span class="typ">Class</span><span class="pln"> cls2 </span><span class="pun">=</span><span class="pln"> loader2</span><span class="pun">.</span><span class="pln">loadClass</span><span class="pun">(</span><span class="str">"sample.PostmanImpl"</span><span class="pun">);</span><span class="pln">
+    </span><span class="typ">Postman</span><span class="pln"> postman2 </span><span class="pun">=</span><span class="pln"> </span><span class="pun">(</span><span class="typ">Postman</span><span class="pun">)</span><span class="pln"> cls2</span><span class="pun">.</span><span class="pln">newInstance</span><span class="pun">();</span></p><p><span class="pln">    </span><span class="com">/*
+     * Work with postman2 from now on ...
+     * Don't worry about loader1, cls1, and postman1
+     * they will be garbage collected automatically.
+     */</span><span class="pln">
+</span></p></code>
+</pre><div class="apart ad lazyload_ad_article"><code type="text/javascript"><!--IDG.GPT.IMUCounter = IDG.GPT.IMUCounter + 1;IDG.GPT.addDisplayedAd(IDG.GPT.getIMUSlotName(), "true");IDG.GPT.addLazyloadedAd(IDG.GPT.getIMUSlotName(), "true");document.write('<div id="' + IDG.GPT.getIMUSlotName() + '" class="">');googletag.cmd.push(function() {googletag.pubads().display(IDG.GPT.unitName, [[320,50],[300,250],[300,50]], IDG.GPT.getIMUSlotName()).setTargeting("pos", IDG.GPT.getIMUSlotName());});document.write('</div>');//--></code></div><p>Pay attention to the <code>parentLoader</code> when creating your own classloader. Basically, the rule is that the parent classloader must provide all the dependencies the child classloader requires. So in the sample code, the dynamic class <code>PostmanImpl</code> depends on the interface <code>Postman</code>; that's why we use <code>Postman</code>'s classloader as the parent classloader.</p><p>We are still one step away to completing the dynamic code. Recall the example introduced earlier. There, dynamic class reload is transparent to its caller. But in the above sample code, we still have to change the service instance from <code>postman1</code> to <code>postman2</code> when the code changes. The fourth and final step will remove the need for this manual change.</p><h3>Link the up-to-date class to its caller</h3><p>How do you access the up-to-date dynamic class with a static reference? Apparently, a direct (normal) reference to a dynamic class's object will not do the trick. We need something between the client and the dynamic class—a proxy. (See the famous book <a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#resources"><em>Design Patterns</em></a> for more on the Proxy pattern.)</p><p>Here, a proxy is a class functioning as a dynamic class's access interface. A client does not invoke the dynamic class directly; the proxy does instead. The proxy then forwards the invocations to the backend dynamic class. Figure 2 shows the collaboration.</p><figure class="center"><img height="77" src="./Add dynamic Java code to your application   JavaWorld_files/jw-0612-dynamic2-100156080-orig.gif" width="424"><figcaption>Figure 2. Collaboration of the proxy</figcaption></figure><p>When the dynamic class reloads, we just need to update the link between the proxy and the dynamic class, and the client continues to use the same proxy instance to access the reloaded class. Figure 3 shows the collaboration.</p><figure class="center"><img height="155" src="./Add dynamic Java code to your application   JavaWorld_files/jw-0612-dynamic3-100156081-orig.gif" width="425"><figcaption>Figure 3. Collaboration of the proxy with reloaded dynamic class</figcaption></figure><p>In this way, changes to the dynamic class become transparent to its caller.</p><p>The Java reflection API includes a handy utility for creating proxies. The class <code>java.lang.reflect.Proxy</code> provides static methods that let you create proxy instances for any Java interface.</p><p>The sample code below creates a proxy for the interface <code>Postman</code>. (If you aren't familiar with <code>java.lang.reflect.Proxy</code>, please take a look at the <a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html#resources">Javadoc</a> before continuing.)</p><pre class="prettyprint prettyprinted" style=""><span class="pln"> </span><code><span class="pln">  </span><span class="typ">InvocationHandler</span><span class="pln"> handler </span><span class="pun">=</span><span class="pln"> </span><span class="kwd">new</span><span class="pln"> </span><span class="typ">DynaCodeInvocationHandler</span><span class="pun">(...);</span><span class="pln">
+    </span><span class="typ">Postman</span><span class="pln"> proxy </span><span class="pun">=</span><span class="pln"> </span><span class="pun">(</span><span class="typ">Postman</span><span class="pun">)</span><span class="pln"> </span><span class="typ">Proxy</span><span class="pun">.</span><span class="pln">newProxyInstance</span><span class="pun">(</span><span class="pln">
+                </span><span class="typ">Postman</span><span class="pun">.</span><span class="kwd">class</span><span class="pun">.</span><span class="pln">getClassLoader</span><span class="pun">(),</span><span class="pln">
+                </span><span class="kwd">new</span><span class="pln"> </span><span class="typ">Class</span><span class="pun">[]</span><span class="pln"> </span><span class="pun">{</span><span class="pln"> </span><span class="typ">Postman</span><span class="pun">.</span><span class="kwd">class</span><span class="pln"> </span><span class="pun">},</span><span class="pln">
+                handler</span><span class="pun">);</span><span class="pln">
+</span></code>
+</pre><p>The returned <code>proxy</code> is an object of an anonymous class that shares the same classloader with the <code>Postman</code> interface (the <code>newProxyInstance()</code> method's first parameter) and implements the <code>Postman</code> interface (the second parameter). A method invocation on the <code>proxy</code> instance is dispatched to the <code>handler</code>'s <code>invoke()</code> method (the third parameter). And <code>handler</code>'s implementation may look like the following:</p>
+	
+	
+	
+
+	
+	
+		
+		
+	
+		
+</div>
+
+
+
+    <div class="apart-alt tags">
+    <ul>
+    	
+    		<li><a href="http://www.javaworld.com/tag/java/">Java</a></li>
+    	
+    </ul>
+	</div>
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="pagination">
+	
+    
+	    <span class="page-numbers">
+		    
+		    	<a href="./Add dynamic Java code to your application   JavaWorld_files/Add dynamic Java code to your application   JavaWorld.htm" class="page-link current">1</a>
+		    
+		    	<a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html?page=2" class="page-link ">2</a>
+		    
+	    </span>
+	    <span class="current-page">
+	    	Page 
+	    </span>
+	
+	
+		<a href="http://www.javaworld.com/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html?page=2" class="page-link next">Next <i class="ss-icon">next</i></a>
+	
+</section>
+
+
+ 
+
+
+
+
+
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+	$('.embeddedVideo').each(function(idx, item) {
+		var id = $(item).attr('id');
+		var vid = id.replace("vid", "");
+		var width = $(item).attr('width');
+		var height = $(item).attr('height');
+		var videoIframeUrl = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ":" + window.location.port: "") + "/video/iframe/" + vid + "/iframe.html";
+		$(item).replaceWith("<iframe width=\"" + width + "\" height=\"" + height + "\" src=\"" + videoIframeUrl + "\" frameborder=\"0\" scrolling=\"no\" ></iframe><br clear=\"all\" />");
+	});
+});
+</script>
+	
+	
+	
+	
+
+
+
+
+							
+
+
+
+
+
+
+
+
+
+
+						
+					
+				
+				</section><!-- /.bodee -->
+
+				
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+			
+			
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="six-column">
+	<div class="head">Recommended</div>
+	<ul>
+		
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class=" first">
+	
+		
+			
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+		
+				
+				<figure class="well-img">
+					<a href="http://www.javaworld.com/article/2461744/java-language/iterating-over-collections-in-java-8.html"><img class="carousel.idgeImage  imgId100368956 " src="./Add dynamic Java code to your application   JavaWorld_files/java-snazzy-100368956-carousel.idge.png" alt="java snazzy" itemprop="image"></a>
+					
+				</figure>
+				
+		
+		
+	
+
+	
+	
+		
+		
+		
+	
+	
+	<div class="post-cont">
+		
+			
+				
+			
+			
+		
+		<div class="title">
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+    	
+    		<a href="http://www.javaworld.com/article/2461744/java-language/iterating-over-collections-in-java-8.html">Iterating over collections in Java 8</a>
+    	
+	
+</div>
+    </div>
+    
+	    
+    
+</li>
+
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class=" ">
+	
+		
+			
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+		
+				
+				<figure class="well-img">
+					<a href="http://www.javaworld.com/article/2459212/scripting-jvm-languages/why-one-developer-switched-from-java-to-google-go.html"><img class="carousel.idgeImage  imgId100363950 " src="./Add dynamic Java code to your application   JavaWorld_files/scripting-100363950-carousel.idge.png" alt="scripting" itemprop="image"></a>
+					
+				</figure>
+				
+		
+		
+	
+
+	
+	
+		
+		
+		
+	
+	
+	<div class="post-cont">
+		
+			
+				
+			
+			
+		
+		<div class="title">
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+    	
+    		<a href="http://www.javaworld.com/article/2459212/scripting-jvm-languages/why-one-developer-switched-from-java-to-google-go.html">Why one developer switched from Java to Google Go</a>
+    	
+	
+</div>
+    </div>
+    
+	    
+    
+</li>
+
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class=" ">
+	
+		
+			
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+		
+				
+				<figure class="well-img">
+					<a href="http://www.javaworld.com/article/2458888/spring-framework/open-source-java-projects-spring-batch.html"><img class="carousel.idgeImage  imgId100363947 " src="./Add dynamic Java code to your application   JavaWorld_files/integration-100363947-carousel.idge.png" alt="integration" itemprop="image"></a>
+					
+				</figure>
+				
+		
+		
+	
+
+	
+	
+		
+		
+		
+	
+	
+	<div class="post-cont">
+		
+			
+				
+			
+			
+		
+		<div class="title">
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+    	
+    		<a href="http://www.javaworld.com/article/2458888/spring-framework/open-source-java-projects-spring-batch.html">Open source Java projects: Spring Batch</a>
+    	
+	
+</div>
+    </div>
+    
+	    
+    
+</li>
+
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class=" ">
+	
+		
+			
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+		
+				
+				<figure class="well-img">
+					<a href="http://www.javaworld.com/article/2463191/learn-java/books-that-have-most-influenced-my-software-development-career.html"><img class="carousel.idgeImage  imgId100370688 " src="./Add dynamic Java code to your application   JavaWorld_files/marx-books-100370688-carousel.idge.png" alt="marx books" itemprop="image"></a>
+					
+				</figure>
+				
+		
+		
+	
+
+	
+	
+		
+		
+		
+	
+	
+	<div class="post-cont">
+		
+			
+				
+			
+			
+		
+		<div class="title">
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+    	
+    		<a href="http://www.javaworld.com/article/2463191/learn-java/books-that-have-most-influenced-my-software-development-career.html">Java learner: 9 books for serious developers</a>
+    	
+	
+</div>
+    </div>
+    
+	    
+    
+</li>
+
+				
+				
+			
+		
+	
+
+
+		
+		
+		
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="sponsored first">
+	
+		
+			
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+		
+		
+			
+			<figure class="well-img">
+				  <div class="sized-img-teaser">
+					
+					  
+					    <a href="http://resources.javaworld.com/ccd/assets/63500/detail"><img class="smallImage  imgId100358077 " src="./Add dynamic Java code to your application   JavaWorld_files/ast-0120114_why_dell_poweredge_vrtx_for_robo_and_small_offices__technical_white_paper-100358077-small.png" itemprop="image"></a>
+					  
+					  
+					
+				  </div>
+				</figure>
+			
+		
+	
+
+	
+	
+		
+			<div class="item-eyebrow">
+			
+	   			White Paper
+	   			
+	   		
+	   		</div>
+		
+		
+		
+	
+	
+	<div class="post-cont">
+		
+			
+			
+		
+		<div class="title">
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+			
+				
+				
+					
+				
+				
+			
+			
+				
+					<a href="http://resources.javaworld.com/ccd/assets/63500/detail">4 Reasons To Choose Dell PowerEdge VRTX</a>
+				
+				
+			
+		
+    	
+	
+</div>
+    </div>
+    
+	    
+    
+</li>
+
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="sponsored ">
+	
+		
+			
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+		
+		
+			
+			<figure class="well-img">
+				  <div class="sized-img-teaser">
+					
+					  
+					    <a href="http://resources.javaworld.com/ccd/assets/62332/detail"><img class="smallImage  imgId100409258 " src="./Add dynamic Java code to your application   JavaWorld_files/ast-0128434_mashery_success_guide_-_apis_as_products_final-100409258-small.png" itemprop="image"></a>
+					  
+					  
+					
+				  </div>
+				</figure>
+			
+		
+	
+
+	
+	
+		
+			<div class="item-eyebrow">
+			
+	   			White Paper
+	   			
+	   		
+	   		</div>
+		
+		
+		
+	
+	
+	<div class="post-cont">
+		
+			
+			
+		
+		<div class="title">
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+			
+				
+				
+					
+				
+				
+			
+			
+				
+					<a href="http://resources.javaworld.com/ccd/assets/62332/detail">API Playbook: Drive API Adoption Through Developer Engagement</a>
+				
+				
+			
+		
+    	
+	
+</div>
+    </div>
+    
+	    
+    
+</li>
+
+				
+				
+			
+		
+	
+
+
+		
+	</ul>
+</div><!-- /.six-column -->
+		
+
+		
+			
+				
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+		
+			
+			
+				<script type="text/javascript">
+					var disqus_shortname = 'idg-javaworld';
+	    			var disqus_url = 'http://www.javaworld.com/javaworld/jw-06-2006/jw-0612-dynamic.html';
+				</script>	
+			
+		
+		
+	
+
+
+<section class="bodee" id="comments">
+	<div class="comments-hed clearfix">
+		<div class="head">Join the discussion</div>
+		<div class="subhead"><em>Share your thoughts and comment on this article.</em> <a href="http://www.javaworld.com/about/comment-policy.html">Our Commenting Policies</a></div>
+	</div>
+	<div class="comments-body">
+	  <div id="disqus_thread"><iframe id="dsq-2" data-disqus-uid="2" allowtransparency="true" frameborder="0" scrolling="no" tabindex="0" title="Disqus" style="width: 100% !important; border: none !important; overflow: hidden !important; height: 3546px !important; " width="100%" src="./Add dynamic Java code to your application   JavaWorld_files/saved_resource(2).htm" horizontalscrolling="no" verticalscrolling="no"></iframe></div>
+	  <div id="more-comments" class="click-to-open">View all 16 comments</div>
+	</div>   
+   <script type="text/javascript">
+    var disqus_developer = 1;
+    
+    // Show Disqus thread
+    (function() {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    // Update comment counter(s). Assumes jQuery
+    $(document).ready(function () {
+        var disqus_public_key = "DNrpnfxqqoKqwRr44rxhqZmnWI7dSEbrjryENL7DjkttLqnGrOSNEqSgbSVzcYBX";
+        $.ajax({
+            type: 'GET',
+            url: "https://disqus.com/api/3.0/threads/set.jsonp",
+            data: { api_key: disqus_public_key, forum : disqus_shortname, thread : "link:" + disqus_url }, // URL method
+            cache: false,
+            dataType: "jsonp",
+            success: function (result) {
+                for (var i in result.response) {
+                    var count = result.response[i].posts;
+                    $(".comment").attr("data-comment-count",count);
+                }
+            }
+        });
+    });
+
+    function disqus_config() {
+	 	this.callbacks.onReady = [function() { 
+	 		var h = $('#disqus_thread iframe').height();
+	 		var commentCount = $(".comment").data("comment-count");
+	 		if (h < 500 || commentCount < 2) {
+	 			$('#more-comments').hide();
+	 			$('#disqus_thread').addClass('open');
+	 		}
+	 		else {
+		 		$('#more-comments').click(function(){
+		 			$('#disqus_thread').height(h).addClass('open');
+		 			$('#more-comments').hide();
+		 		});
+		 		
+		 		//capturing a click event on a cross-domain iframe is a little trickier...
+		 		var disqusIframe =  $('#disqus_thread iframe');
+		 		var disqusIframeMouseover = false;
+		 		
+		 		disqusIframe.mouseover(function(){ 
+		 			disqusIframeMouseover = true; 
+		 			
+		 			//also, we need to resize the wrapper div if the iframe is resized for any reason 
+			 		//let's not run this function if we're not interacting with the iframe though.
+		 			window.disqusIframeResize = setInterval(function(){ if (($('#disqus_thread').height() != disqusIframe.height()) && $('#disqus_thread').hasClass('open')) {$('#disqus_thread').height(disqusIframe.height());}}, 50);
+		 		}); 
+		 		disqusIframe.mouseout(function(){
+		 			clearInterval(disqusIframeResize);
+		 			disqusIframeMouseover = false; 
+		 		}); 
+		 		$(window).blur(function() {
+		 			if (disqusIframeMouseover == true) {
+		 				$('#disqus_thread').height(h).addClass('open');
+			 			$('#more-comments').hide();
+		 			}
+		 		});		
+	 		}
+	 		if (commentCount > 0) {
+            	$('.comments-hed .subhead em').html('Share your thoughts and comment on this article.');
+            }
+            if (commentCount > 1) {
+           		$('#more-comments').html('View all ' + commentCount  + ' comments');
+            }
+	 	}];
+	    this.callbacks.onNewComment = [function() { 
+	    	if (typeof(OPG.Eloqua) != 'undefined') {
+	    		OPG.Eloqua.refresh_iframe('social');
+	    	}
+      	}];
+    }
+  </script>
+  
+  
+  
+	
+	  		
+	  	
+ 	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+	IDG.GPT.addExtIMU();
+</script>
+<div class="lazyload_ad">
+	<code type="text/javascript">
+	<!--
+		IDG.GPT.IMUCounter = IDG.GPT.IMUCounter + 1;
+		IDG.GPT.addDisplayedAd(IDG.GPT.getIMUSlotName(), "true");
+		IDG.GPT.addLazyloadedAd(IDG.GPT.getIMUSlotName(), "true");
+		document.write('<div id="' + IDG.GPT.getIMUSlotName() + '" class="">'); 
+		googletag.cmd.push(function() {
+			googletag.pubads().setTargeting("pos",IDG.GPT.getIMUSlotName());
+			googletag.pubads().display(IDG.GPT.unitName, [300,250], IDG.GPT.getIMUSlotName()).setTargeting("pos", IDG.GPT.getIMUSlotName());
+		});
+		document.write('</div>');
+	//-->
+	</code>
+</div>
+
+  
+  
+</section>
+			
+			
+		
+
+		
+		
+		
+			
+
+
+
+
+
+
+
+
+
+
+<section id="funnel">
+    <section class="popular-brand-cols">
+
+
+
+
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<section class="popular-col">
+
+
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+							
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+			
+
+	
+	 	<div class="promo with-eyebrow ">
+    		<div class="eyebrow">Popular on JavaWorld</div>
+    		
+	  			<div class="sized-img"><a href="http://www.javaworld.com/article/2092260/java-se/java-programming-with-lambda-expressions.html"></a></div><a href="http://www.javaworld.com/article/2092260/java-se/java-programming-with-lambda-expressions.html">
+	 		
+	 		
+	 		
+	 		</a><div class="hed"><a href="http://www.javaworld.com/article/2092260/java-se/java-programming-with-lambda-expressions.html"></a><a href="http://www.javaworld.com/article/2092260/java-se/java-programming-with-lambda-expressions.html">Java programming with lambda expressions</a></div>
+	 		
+				<p>The major new features in Java 8 center around lambda expressions, a functional programming construct</p>
+			
+	
+	
+	
+	
+	
+
+
+
+
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+							
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+			
+
+	
+	
+		<ul>
+			<li class="clearfix">
+				
+	 			
+	 			
+	    		<div class="hed"><a href="http://www.javaworld.com/article/2077837/java-se/hello--osgi--part-1--bundles-for-beginners.html">Hello, OSGi, Part 1: Bundles for beginners</a></div>
+	 		</li>
+	
+	
+	
+	
+
+
+
+
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+							
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+			
+
+	
+	
+	
+			<li class="clearfix">
+				
+	  				<a href="http://www.javaworld.com/article/2094847/enterprise-java/review-10-javascript-editors-and-ides-put-to-the-test.html"><img class="carousel.idgeImage  imgId100354413 " src="./Add dynamic Java code to your application   JavaWorld_files/javascript-100354413-carousel.idge.png" alt="javascript" itemprop="image"></a>
+	 			
+	 			
+	 			
+	    		<div class="hed"><a href="http://www.javaworld.com/article/2094847/enterprise-java/review-10-javascript-editors-and-ides-put-to-the-test.html">Review: 10 JavaScript editors and IDEs put to the test</a></div>
+	 		</li>
+	 	</ul>
+	 	</div><!-- /.promo -->	
+	 	<div class="promo newsletter with-eyebrow">
+     		
+				
+				
+			
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+		
+		<!-- blx4 #680 blox4.html  -->
+			
+		
+		
+			
+				
+					
+					
+					
+						
+							
+					
+						
+					
+					
+					
+						
+					
+				
+				
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+			<div class="eyebrow">Newsletters</div> <div class="hed">Stay up to date on the latest tutorials and Java community news posted on JavaWorld</div> <p>Get our Enterprise Java newsletter</p> <form action="http://www.javaworld.com/newsletters/signup.html"> <input type="email" name="email" placeholder="Enter your email address"> <button class="btn" type="submit">GO</button> </form>
+		
+		
+	
+
+		
+	
+
+
+		</div><!--  ./promo newsletter -->
+	
+	
+	
+
+
+
+
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+							
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+			
+
+	
+	
+	
+	
+		<div class="promo ">
+    		
+	 		
+	 		
+	 		<div class="hed"><a href="http://www.javaworld.com/article/2075966/core-java/start-up-the-velocity-template-engine.html">Start up the Velocity Template Engine</a></div>
+			
+			   <p>Geir Magnusson Jr. gets you started with using the Velocity Template Engine and the Velocity Template</p>
+			
+		</div>
+	
+	
+
+
+
+
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+							
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+			
+
+	
+	
+	
+	
+		<div class="promo ">
+    		
+	 		
+	 		
+	 		<div class="hed"><a href="http://www.javaworld.com/article/2452940/learn-java/python-bumps-off-java-as-top-learning-language.html">Python bumps off Java as top learning language</a></div>
+			
+			   <p>Python's simpler syntax and ability to scale up for enterprise development have made it the preferred</p>
+			
+		</div>
+	
+	
+
+
+
+
+				
+				
+			
+		
+	
+
+
+
+
+
+</section>
+
+
+        <section class="brand-col">
+
+	
+	
+		
+			
+			
+			
+			
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+		
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="ad" id="">
+
+<script type="text/javascript">
+	IDG.GPT.addExtIMU();
+</script>
+<div class="lazyload_ad">
+	<code type="text/javascript">
+	<!--
+		IDG.GPT.IMUCounter = IDG.GPT.IMUCounter + 1;
+		IDG.GPT.addDisplayedAd(IDG.GPT.getIMUSlotName(), "true");
+		IDG.GPT.addLazyloadedAd(IDG.GPT.getIMUSlotName(), "true");
+		document.write('<div id="' + IDG.GPT.getIMUSlotName() + '" class="">'); 
+		googletag.cmd.push(function() {
+			googletag.pubads().setTargeting("pos",IDG.GPT.getIMUSlotName());
+			googletag.pubads().display(IDG.GPT.unitName, IDG.GPT.slots["topimu"], IDG.GPT.getIMUSlotName()).setTargeting("pos", IDG.GPT.getIMUSlotName());
+		});
+		document.write('</div>');
+	//-->
+	</code>
+</div>
+
+</div>
+
+		
+ 		
+ 			
+ 		
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+		
+			
+		
+	
+
+
+
+
+
+             
+<div class="promo list" data-placement-id="">
+    <div class="eyebrow">
+    
+    
+    Popular Resources
+    
+    </div>
+    
+    
+    	
+    	
+    		
+			
+				
+			
+			
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<ul>
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="with-image">
+	
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+		
+		
+			
+			<figure class="well-img">
+				  <div class="sized-img-teaser">
+					
+					  
+					    <a href="http://resources.javaworld.com/ccd/assets/63500/detail"><img class="smallImage  imgId100358077 " src="./Add dynamic Java code to your application   JavaWorld_files/ast-0120114_why_dell_poweredge_vrtx_for_robo_and_small_offices__technical_white_paper-100358077-small.png" itemprop="image"></a>
+					  
+					  
+					
+				  </div>
+				</figure>
+			
+		
+	
+
+
+	
+		<div class="item-eyebrow">White Paper</div>
+	
+	<div class="title"><a href="http://resources.javaworld.com/ccd/assets/63500/detail">4 Reasons To Choose Dell PowerEdge VRTX</a></div>
+</li>
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="with-image">
+	
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+		
+		
+			
+			<figure class="well-img">
+				  <div class="sized-img-teaser">
+					
+					  
+					    <a href="http://resources.javaworld.com/ccd/assets/62332/detail"><img class="smallImage  imgId100409258 " src="./Add dynamic Java code to your application   JavaWorld_files/ast-0128434_mashery_success_guide_-_apis_as_products_final-100409258-small.png" itemprop="image"></a>
+					  
+					  
+					
+				  </div>
+				</figure>
+			
+		
+	
+
+
+	
+		<div class="item-eyebrow">White Paper</div>
+	
+	<div class="title"><a href="http://resources.javaworld.com/ccd/assets/62332/detail">API Playbook: Drive API Adoption Through Developer Engagement</a></div>
+</li>
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="with-image">
+	
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+		
+		
+			
+			<figure class="well-img">
+				  <div class="sized-img-teaser">
+					
+					  
+					    <a href="http://resources.javaworld.com/ccd/assets/64181/detail"><img class="smallImage  imgId100413272 " src="./Add dynamic Java code to your application   JavaWorld_files/ast-0130248_idc_report_application_aware_storage-100413272-small.png" itemprop="image"></a>
+					  
+					  
+					
+				  </div>
+				</figure>
+			
+		
+	
+
+
+	
+		<div class="item-eyebrow">White Paper</div>
+	
+	<div class="title"><a href="http://resources.javaworld.com/ccd/assets/64181/detail">Application-Aware Storage for Virtual Environments</a></div>
+</li>
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="with-image">
+	
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+		
+		
+			
+			<figure class="well-img">
+				  <div class="sized-img-teaser">
+					
+					  
+					    <a href="http://resources.javaworld.com/ccd/assets/64197/detail"><img class="smallImage  imgId100413274 " src="./Add dynamic Java code to your application   JavaWorld_files/ast-0130235_tintri_backup_and_recovery_best_practices_2014_v1.0-100413274-small.png" itemprop="image"></a>
+					  
+					  
+					
+				  </div>
+				</figure>
+			
+		
+	
+
+
+	
+		<div class="item-eyebrow">White Paper</div>
+	
+	<div class="title"><a href="http://resources.javaworld.com/ccd/assets/64197/detail">Backup and Recovery Best Practices with Tintri VMstore</a></div>
+</li>
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+<li>
+	
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		<div class="item-eyebrow">Video/Webcast<br><span class="sponsored">Sponsored</span></div>
+	
+	<div class="title"><a href="http://resources.javaworld.com/ccd/assets/63572/detail">Geek's Guide to Presenting to Business People</a></div>
+</li>
+				
+				
+			
+		
+	</ul>
+
+
+	
+	<form action="http://www.javaworld.com/resources/search" method="get">
+		<input type="text" name="query" placeholder="Search Resources">
+		<!--  add additional dto options here -->
+		<input type="hidden" name="rid" value="2">
+		<input type="hidden" name="chld" value="true">
+		<button class="btn" type="submit">Go</button>
+	</form>
+
+</div>
+
+
+
+	
+	
+	        
+
+        </section>
+    </section>
+
+    <section class="featured-col">
+    	
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+		
+		<!-- blx4 #676 blox4.link_list  -->
+			
+		
+		
+			
+				
+					
+					
+					
+						
+							
+					
+						
+					
+					
+					
+				
+				
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+
+<div class="promo with-eyebrow with-image">
+	<div class="eyebrow">Featured Stories</div>
+	
+		<div class="sized-img"><a href="http://www.javaworld.com/article/2604122/scripting-jvm-languages/scala-founder-language-due-for-fundamental-rethink.html"><img class="medium.idgeImage  imgId100413346 " src="./Add dynamic Java code to your application   JavaWorld_files/typesafe-100413346-medium.idge.png" alt="typesafe" itemprop="image"></a></div>
+	
+	
+	<div class="hed"><a href="http://www.javaworld.com/article/2604122/scripting-jvm-languages/scala-founder-language-due-for-fundamental-rethink.html">Scala due for 'fundamental rethink,' says founder</a></div>
+	<p>The Scala road map has three upgrades planned, with a simpler, more modular language set as the end</p>
+</div>
+		
+	
+
+		
+	
+
+
+
+		
+		
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					 
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<div class="promo ">
+ 		
+	 	
+		<div class="hed">
+			<a href="http://www.javaworld.com/article/2604310/html-css-js/jhipster-links-java-and-javascript-for-web-development.html">JHipster links Java and JavaScript for Web development</a>
+		</div>
+		<p>JHipster code generator integrates JavaScript and Angular.js with Java's extensive backend ecosystem,</p>
+	</div>
+
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					 
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<div class="promo with-image">
+ 		
+ 		<div class="sized-img">
+	  		<a href="http://www.javaworld.com/article/2601433/java-language/programmers-could-get-repl-in-official-java.html"><img class="carousel.idgeImage  imgId100411838 " src="./Add dynamic Java code to your application   JavaWorld_files/openjdk-java-100411838-carousel.idge.png" alt="openjdk java" itemprop="image"></a>
+	  	</div>
+	 	
+	 	
+		<div class="hed">
+			<a href="http://www.javaworld.com/article/2601433/java-language/programmers-could-get-repl-in-official-java.html">Programmers could get REPL in official Java</a>
+		</div>
+		<p>Java could add a  Lisp-based read-evaluate-print-loop tool as part of Project Kulla, but developers</p>
+	</div>
+
+				
+				
+			
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					 
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<div class="promo ">
+ 		
+	 	
+		<div class="hed">
+			<a href="http://www.javaworld.com/article/2604370/java-platform/compiler-wars-llvm-and-gcc-compete-on-speed-security.html">Compiler wars: LLVM and GCC compete on speed, security</a>
+		</div>
+		<p>Newest revision of LLVM compiler framework battles with GCC on performance, but it has lots of ground</p>
+	</div>
+
+				
+				
+			
+		
+	
+
+
+    </section>
+</section>
+		
+		
+		
+		
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+ 	
+<div class="lazyload_ad">
+	<code type="text/javascript">
+		<!--
+		document.write('<div id="ciu" class="">');
+		IDG.GPT.addDisplayedAd("ciu", "true");
+		IDG.GPT.addLazyloadedAd("ciu", "true");
+		googletag.cmd.push(function() { googletag.display('ciu'); });
+		document.write('</div>');
+		//-->
+	</code>
+</div>
+ 	
+  
+						
+		
+	
+	
+
+
+	
+		<section id="resources-sponsored-links" class="show">
+	
+	
+ 	<section class="sponsored-links">
+ 	  <div class="head">Sponsored Links</div>
+	 	
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	<ul class="first">
+		
+			
+			
+				
+					
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+						
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+<li>
+	<a rel="nofollow" href="http://pubads.g.doubleclick.net/gampad/clk?id=128907536&iu=/8456/IDG.Javaworld_Enterprise" onclick="moduleTrack(&#39;Sponsored Links&#39;,&#39;resources-sponsored-links component&#39;)">
+		eBook: How Developers' Guide to Designing Beautiful Reports
+	</a>
+</li>
+				
+				
+			
+		
+	</ul>
+
+
+ 	</section>
+</section>
+	
+	
+
+
+				</article>
+
+			</section><!-- /role=main -->
+
+		</div><!-- /#page-wrapper -->
+
+		
+
+
+
+
+
+
+
+
+
+
+
+<footer>
+    <section class="brand">
+        <a href="http://www.javaworld.com/"><span class="logo">JavaWorld</span></a>
+		<span class="tagline">JavaWorld is the original independent resource for Java developers, architects, and managers.</span>
+        
+        <span class="follow">
+			<label>Follow us</label>
+            	<ul>
+            		
+
+
+
+
+
+
+
+
+
+
+
+
+	<li><a href="https://twitter.com/javaworldcom" rel="nofollow" target="_blank" onclick="brandFollowTrack(&#39;Twitter&#39;)"><i class="ss-icon ss-social">Twitter</i></a></li>
+
+
+
+	<li><a href="http://www.linkedin.com/company/javaworld-com" rel="nofollow" target="_blank" onclick="brandFollowTrack(&#39;LinkedIn&#39;)"><i class="ss-icon ss-social brand">LinkedIn</i></a></li>
+
+
+
+	<li><a href="https://www.facebook.com/pages/JavaWorld/107993545895326" rel="nofollow" target="_blank" onclick="brandFollowTrack(&#39;Facebook&#39;)"><i class="ss-icon ss-social brand">Facebook</i></a></li>				
+
+
+
+	<li><a href="https://plus.google.com/117974570132126965756/posts" rel="publisher" target="_blank" onclick="brandFollowTrack(&#39;Google+&#39;)"><i class="ss-icon ss-social brand">Google+</i></a></li>                	
+
+
+
+
+
+	<li><a href="http://www.javaworld.com/about/rss/" target="_blank"><i class="ss-icon ss-social">RSS</i></a></li>
+
+
+
+            	</ul>
+        </span>
+        
+    </section>
+    	
+    <section class="topics">
+    	
+			
+		        
+		        <nav id="ft1">
+		            <ul>
+						
+							
+							
+		    			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+			
+				<li class="selected"><a href="http://www.javaworld.com/category/core-java/" class="active">Core Java</a>
+					
+				</li>
+			
+				<li><a href="http://www.javaworld.com/category/enterprise-java/">Enterprise Java</a>
+					
+				</li>
+			
+				<li><a href="http://www.javaworld.com/category/java-app-dev/">Java App Dev</a>
+					
+				</li>
+			
+				<li><a href="http://www.javaworld.com/category/learn-java/">Learn Java</a>
+					
+				</li>
+			
+				<li><a href="http://www.javaworld.com/category/mobile-java/">Mobile Java</a>
+					
+				</li>
+			
+		
+	
+	
+	
+
+		            </ul>
+		        </nav>
+		        
+	        
+        
+        
+        <nav id="ft2">
+            <ul>
+           		
+           		
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://www.javaworld.com/howto">How-Tos</a></li>
+<li><a href="http://www.javaworld.com/feature">Features</a></li>
+<li><a href="http://www.javaworld.com/news">News</a></li>
+<li><a href="http://www.javaworld.com/blogs">Blogs</a></li>
+<li><a href="http://www.javaworld.com/resources">Resources</a></li>
+<li><a href="http://www.javaworld.com/newsletters/signup.html">Newsletters</a></li>
+           		
+            </ul>
+        </nav>
+        
+        
+			
+		
+    </section>
+    
+    
+    <section class="about">
+		<div class="wrapper"> 
+        	<nav class="tertiary" id="ft3">
+            	<ul>
+            		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li><a href="http://www.javaworld.com/about/about.html">About Us</a>
+
+</li><li><a href="http://www.javaworld.com/about/contactus.html">Contact</a>
+
+</li><li><a href="http://www.javaworld.com/about/privacy.html">Privacy Policy</a>
+
+</li><li><a href="http://www.javaworld.com/about/advertise.html">Advertising</a>
+
+</li><li><a href="http://careers.idg.com/" target="_blank">Careers at IDG</a>
+
+</li><li><a href="http://www.javaworld.com/about/sitemap.html">Site Map</a>
+
+</li><li><a href="http://www.javaworld.com/about/adchoices.html">Ad Choices</a>
+
+
+
+
+            	</li></ul>
+        	</nav>
+		</div>
+	</section>
+	
+    <section class="copyright">
+        <div class="wrapper">
+        	<p><a href="http://www.javaworld.com/about/copyright.html">Copyright</a> © 1994 - 2014 JavaWorld, Inc. All rights reserved.</p>
+			<div class="network">
+				<div id="network-selector">
+                <div class="label">Explore the IDG Network <i class="ss-icon tick">descend</i></div>
+                	<ul>
+					<li><a href="http://www.cfoworld.com/" target="_blank">CFOworld</a></li>
+					<li><a href="http://www.cio.com/" target="_blank">CIO</a></li>
+					<li><a href="http://www.citeworld.com/" target="_blank">CITEworld</a></li>
+					<li><a href="http://www.computerworld.com/" target="_blank">Computerworld</a></li>
+					<li><a href="http://www.csoonline.com/" target="_blank">CSO</a></li>
+					<li><a href="http://www.demo.com/" target="_blank">DEMO</a></li>
+					<li><a href="http://www.greenbot.com/" target="_blank">Greenbot</a></li>
+					<li><a href="http://www.idc.com/" target="_blank">IDC</a></li>
+					<li><a href="http://www.idg.com/" target="_blank">IDG</a></li>
+					<li><a href="http://www.idgconnect.com/" target="_blank">IDG Connect</a></li>
+					<li><a href="http://www.idgknowledgehub.com/" target="_blank">IDG Knowledge Hub</a></li>
+					<li><a href="http://www.idgtechnetwork.com/" target="_blank">IDG TechNetwork</a></li>
+					<li><a href="http://www.idg.tv/" target="_blank">IDG.TV</a></li>
+					<li><a href="http://www.idgventures.com/" target="_blank">IDG Ventures</a></li>
+					<li><a href="http://www.infoworld.com/" target="_blank">InfoWorld</a></li>
+					<li><a href="http://www.itnews.com/" target="_blank">IT News</a></li>
+					<li><a href="http://www.itwhitepapers.com/" target="_blank">ITwhitepapers</a></li>
+					<li><a href="http://www.itworld.com/" target="_blank">ITworld</a></li>
+					<li><a href="http://www.javaworld.com/" target="_blank">JavaWorld</a></li>
+					<li><a href="http://www.linuxworld.com/" target="_blank">LinuxWorld</a></li>
+					<li><a href="http://www.macworld.com/" target="_blank">Macworld</a></li>
+					<li><a href="http://www.networkworld.com/" target="_blank">Network World</a></li>
+					<li><a href="http://www.pcworld.com/" target="_blank">PC World</a></li>
+					<li><a href="http://www.techhive.com/" target="_blank">TechHive</a></li>
+                	</ul>
+				</div><!-- /#network-selector -->
+			</div><!-- /.network -->
+		</div><!-- /.wrapper -->
+    </section>
+</footer>
+
+<script src="./Add dynamic Java code to your application   JavaWorld_files/jquery-ui.js"></script>
+<script src="./Add dynamic Java code to your application   JavaWorld_files/jquery.dfp.min.js"></script>
+
+<script src="./Add dynamic Java code to your application   JavaWorld_files/FTScroller_plugins.js"></script>
+<script src="./Add dynamic Java code to your application   JavaWorld_files/shortstack_nav.js"></script>
+<script src="./Add dynamic Java code to your application   JavaWorld_files/jt-scrollable.min.js"></script>
+
+<script src="./Add dynamic Java code to your application   JavaWorld_files/socialite.js"></script>
+
+
+
+
+
+		
+	
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+		
+			
+				<div id="superadunit" class="hidden">
+					<div class="ad">
+						<a href="javascript:unhide('superadunit');" id="superstitial-text" style="display:none">This ad will close in 20 seconds. Continue to site »</a>
+						<div id="dogear" class="" style="display: none; ">
+							<script type="text/javascript">
+								IDG.GPT.addDisplayedAd("dogear", "true");
+								googletag.cmd.push(function() { googletag.display('dogear'); });
+							</script><div id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_0__container__" style="border: 0pt none; "><iframe id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_0" name="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_0" width="1" height="1" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom; " src="javascript:"<html><body style='background:transparent'></body></html>""></iframe></div>
+						<iframe id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_0__hidden__" name="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_0__hidden__" width="0" height="0" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom; visibility: hidden; display: none; " src="javascript:"<html><body style='background:transparent'></body></html>""></iframe></div>
+					</div>
+				</div>		
+			
+			
+			
+		
+	
+ 	
+ 
+	
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+		
+			
+			
+			
+				<div id="catfish" class="" style="display: none; ">
+					<script type="text/javascript">
+						IDG.GPT.addDisplayedAd("catfish", "true");
+						googletag.cmd.push(function() { googletag.display('catfish'); });
+					</script><div id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_4__container__" style="border: 0pt none; "><iframe id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_4" name="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_4" width="970" height="50" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom; " src="javascript:"<html><body style='background:transparent'></body></html>""></iframe></div>
+				<iframe id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_4__hidden__" name="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_4__hidden__" width="0" height="0" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom; visibility: hidden; display: none; " src="javascript:"<html><body style='background:transparent'></body></html>""></iframe></div>				
+			
+		
+	
+ 	
+ 
+	
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+		
+			
+			
+			
+				<div id="onebyone" class="" style="display: none; ">
+					<script type="text/javascript">
+						IDG.GPT.addDisplayedAd("onebyone", "true");
+						googletag.cmd.push(function() { googletag.display('onebyone'); });
+					</script><div id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_1__container__" style="border: 0pt none; "><iframe id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_1" name="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_1" width="1" height="1" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom; " src="javascript:"<html><body style='background:transparent'></body></html>""></iframe></div>
+				<iframe id="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_1__hidden__" name="google_ads_iframe_/8456/IDG.Javaworld_Enterprise_1__hidden__" width="0" height="0" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom; visibility: hidden; display: none; " src="javascript:"<html><body style='background:transparent'></body></html>""></iframe></div>				
+			
+		
+	
+ 	
+ 
+	
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+		
+			
+			
+			
+				<div id="mobilewelcomead" class="">
+					<script type="text/javascript">
+						IDG.GPT.addDisplayedAd("mobilewelcomead", "true");
+						googletag.cmd.push(function() { googletag.display('mobilewelcomead'); });
+					</script>
+				</div>				
+			
+		
+	
+ 	
+ 
+
+
+<script src="./Add dynamic Java code to your application   JavaWorld_files/tracking.js"></script>
+<script src="./Add dynamic Java code to your application   JavaWorld_files/autocomplete.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){
+	var listItems = $('#scrollable ul li');
+	var listWidth = 0;
+	for (var i=0;i < listItems.length; i++) {
+		listWidth = listWidth + $(listItems[i]).outerWidth();
+	}
+
+	$('#scrollable ul').width(listWidth+100); //adding an extra 100px of buffer	
+});
+
+//we need to disable this for IE10 for now - link clicks don't work!
+var trackPointerEvents = window.navigator.msPointerEnabled;
+
+if (!trackPointerEvents) {
+	//set up the FT Scroller for the topics
+	var scroller = new FTScroller(document.getElementById('scrollable'), {
+		scrollingY: false,
+		bouncing: false,
+		updateOnWindowResize: true,
+		scrollbars: false
+	});	
+}
+</script>
+
+
+	<script src="./Add dynamic Java code to your application   JavaWorld_files/social_sticker.js"></script>
+	<script src="./Add dynamic Java code to your application   JavaWorld_files/carousel-extend.js"></script>
+	<script src="./Add dynamic Java code to your application   JavaWorld_files/article.js"></script>
+	<script src="./Add dynamic Java code to your application   JavaWorld_files/prettify.js"></script>
+	<script src="./Add dynamic Java code to your application   JavaWorld_files/responsive-tables.js"></script>
+	<script src="./Add dynamic Java code to your application   JavaWorld_files/jquery.tablesorter.min.js"></script>
+	<script>
+	$(document).ready(function() {
+		$("table.tablesorter").tablesorter({
+			widgets: ['zebra']
+		});
+		
+		$("table.tablesorter tbody tr").hover(function() {
+			$(this).toggleClass("selected");
+		});
+		
+		$("table.tablesorter thead tr th").each(function(){			
+			if ($(this).find('.ss-icon').length < 1) {
+				$(this).append('<i class="ss-icon"></i>');
+			}
+		});
+		
+	});
+	</script>
+
+
+
+
+<script src="./Add dynamic Java code to your application   JavaWorld_files/global.js"></script>
+
+<script src="./Add dynamic Java code to your application   JavaWorld_files/ss-social.js"></script>
+<script src="./Add dynamic Java code to your application   JavaWorld_files/ss-standard.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-300704-19']);
+_gaq.push(['_setDomainName', 'javaworld.com']);
+_gaq.push(['_trackPageview']);
+(function() { 
+	var ga = document.createElement('script');
+	ga.type = 'text/javascript';
+	ga.async = true;
+	ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	var s = document.getElementsByTagName('script')[0];
+	s.parentNode.insertBefore(ga, s); }
+)();
+
+function trackGoogleAnalytics(articleId, slideTitle, slideNumber) {
+	_gaq.push(['_setAccount', 'UA-300704-19']);
+	_gaq.push(['_setDomainName', 'javaworld.com']);
+	_gaq.push(['_trackPageview']);
+	_gaq.push(['_trackPageview', '/article/' + articleId + '/slideshow/' + slideNumber]);
+}
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+<script type="text/javascript">
+	var _sf_async_config={};
+
+	_sf_async_config.uid = 29363;
+
+	_sf_async_config.path = "/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html";
+	_sf_async_config.title = "Add dynamic Java code to your application | JavaWorld";
+	_sf_async_config.domain = "javaworld.com";
+
+	
+	_sf_async_config.useCanonical = true;
+	
+		
+			
+			_sf_async_config.sections = "design-patterns";
+			_sf_async_config.authors="Li Yang";
+		
+	
+	(function(){
+	  function loadChartbeat() {
+	    window._sf_endpt=(new Date()).getTime();
+	    var e = document.createElement("script");
+	    e.setAttribute("language", "javascript");
+	    e.setAttribute("type", "text/javascript");
+	    e.setAttribute("src", (("https:" == document.location.protocol) ? 
+	      "https://a248.e.akamai.net/chartbeat.download.akamai.com/102508/" : "http://static.chartbeat.com/") + "js/chartbeat.js");
+	    document.body.appendChild(e);
+	  }
+	  var oldonload = window.onload;
+	  window.onload = (typeof window.onload != "function") ?
+	 loadChartbeat : function() { oldonload(); loadChartbeat(); };
+	})();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+	
+	
+		
+	
+	
+
+<!-- Begin comScore Tag -->
+<script>
+var _comscore = _comscore || [];
+_comscore.push(
+{ c1: "2", c2: "6035308", c3: "", c5: "Design Patterns", c6: "Article: News", c15: "2071777" });
+(function()
+{
+	var s = document.createElement("script"), el = document.getElementsByTagName("script")[0];
+	s.async = true; s.src = (document.location.protocol == "https:" ? "https://sb" : "http://b") + ".scorecardresearch.com/beacon.js";
+	el.parentNode.insertBefore(s, el);
+})();
+</script>
+<noscript>
+&lt;img src="http://b.scorecardresearch.com/p?c1=2&amp;c2=6035308&amp;cv=2.0&amp;cj=1" /&gt;
+</noscript>
+<!-- End comScore Tag -->
+
+
+
+
+
+
+
+
+
+
+
+<!-- Begin BlueKai Tag -->
+<iframe name="__bkframe" height="0" width="0" frameborder="0" src="javascript:void(0)"></iframe>
+<script type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/bk-coretag.js"></script>
+<script type="text/javascript">
+
+if ( typeof(s) != 'undefined' ) {
+	bk_addPageCtx("pageType", (typeof(s.pageType)!='undefined')?s.pageType:'');
+}
+
+
+//CMS-Specific
+bk_addPageCtx("cmscatids", "[3188,3237,3219]");
+
+
+bk_addPageCtx("cmpy", "[]");
+
+bk_doJSTag(14349, 10);
+
+</script>
+<!-- End BlueKai Tag -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- BEGIN Krux Control Tag for JavaWorld -->
+<script class="kxct" data-id="HyVIU8ha" data-timing="async" data-version="1.9" type="text/javascript">
+  window.Krux||((Krux=function(){Krux.q.push(arguments)}).q=[]);
+  (function(){
+    var k=document.createElement('script');k.type='text/javascript';k.async=true;
+    var m,src=(m=location.href.match(/\bkxsrc=([^&]+)/))&&decodeURIComponent(m[1]);    
+    k.src = /^https?:\/\/([^\/]+\.)?krxd\.net(:\d{1,5})?\//i.test(src) ? src : src === "disable" ? "" :
+      (location.protocol==="https:"?"https:":"http:")+"//cdn.krxd.net/controltag?confid=HyVIU8ha";
+    var s=document.getElementsByTagName('script')[0];s.parentNode.insertBefore(k,s);
+  })();
+</script>
+<!-- END Krux Controltag -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- START Nielsen Online SiteCensus? V6.0 -->
+<!-- COPYRIGHT 2010 Nielsen Online -->
+<script type="text/javascript">
+    (function () {
+        var d = new Image(1, 1);
+        d.onerror = d.onload = function () {
+            d.onerror = d.onload = null;
+        };
+        d.src = ["http://secure-us.imrworldwide.com/cgi-bin/m?ci=us-203426h&cg=0&cc=1&si=", escape(window.location.href), "&rp=", escape(document.referrer), "&ts=compact&rnd=", (new Date()).getTime()].join();
+    })();
+</script>
+
+
+<!-- END Nielsen Online SiteCensus? V6.0 -->
+
+<script type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/jquery.lazyload-ad.js"></script>
+
+<script type="text/javascript">
+// -- Load Lazy Advertisement placement as deferred
+$("div.lazyload_ad").lazyLoadAd({
+        threshold    : 500,         // You can set threshold on how close to the edge ad should come before it is loaded. Default is 0 (when it is visible).
+        forceLoad    : false,       // Ad is loaded even if not visible. Default is false.
+        onLoad       : false,       // Callback function on call ad loading
+        onComplete   : false,       // Callback function when load is loaded
+        timeout      : 1500,        // Timeout ad load
+        debug        : false,       // For debug use : draw colors border depends on load status
+        xray         : false        // For debug use : display a complete page view with ad placements
+}) ;
+</script>
+
+
+
+<script type="text/javascript">
+g_arrModules[''] = true;
+g_arrModules['Article Detail:Top:Breadcrumb'] = true;
+g_arrModules['Article Detail:Left:Recommended'] = true;
+g_arrModules['Article Detail:Funnel:Popular Articles'] = true;
+g_arrModules[''] = true;
+g_arrModules['Article Detail:Funnel:Sponsored Blog Posts'] = true;
+g_arrModules['Article Detail:Funnel:Module Resources'] = true;
+g_arrModules['Article Detail:Funnel:Homepage Top Story'] = true;
+g_arrModules['Article Detail:Funnel:Funnel Crawl'] = true;
+
+		$('#resources-sponsored-links').addClass('show');
+	
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+<script language="JavaScript" type="text/javascript">
+	var omniture_account="idgjavaworld";
+	
+	
+	var omniture_trackingServer="metrics.javaworld.com";
+	
+
+$(document).ready(function(){
+	
+	if(!!$('.sharing-tools').length || !!$('#ss-share') || !!$('#sharer')){
+		Socialite.load();
+		Socialite.setup({
+			twitter: {
+				lang      : 'en',
+		        onclick   : function(e) {socialTrack("Article","Twitter","Click");},
+		        ontweet   : function(e) {
+		        	socialTrack("Article","Twitter","Tweet");
+		        	$thm.logPlEvent({"b":"jvw","e":"twshare","t":"article","id":"2071777"});
+			    },
+		        onretweet : function(e) {socialTrack("Article","Twitter","Retweet");},
+		        onfavorite: function(e) {socialTrack("Article","Twitter","Favorite");},
+		        onfollow  : function(e) {socialTrack("Article","Twitter","Follow");followTrack();}
+		    },
+		    facebook: {
+		    	lang	: 'en_US',
+		    	appId	: '196366870381968',
+		    	onlike	: function(url){
+		    		socialTrack("Article","Facebook","Like");
+		    		$thm.logPlEvent({"b":"jvw","e":"fblike","t":"article","id":"2071777"});
+		    	},
+		    	onunlike: function(url){socialTrack("Article","Facebook","Unlike");}
+		    },
+		    googleplus: {
+		        lang	: 'en-US',
+		        callback: function(el, e) {
+		        	socialTrack("Article","Googleplus","Click");
+		        	$thm.logPlEvent({"b":"jvw","e":"googplus","t":"article","id":"2071777"});
+		        }
+		    }
+		});
+		
+		//$('.sharing-tools').show();
+		$('#ss-share').show();
+		
+	}
+	
+	$('a.pinterest-pinit').click(function(e){
+		socialTrack('Article','Pinterest','share');
+	});
+	$('li.redditShare').click(function(e) {
+		socialTrack('Article','Reddit','share');
+	});
+
+	$('.banner-tw').click(function(e){
+		brandFollowTrack("twitter");
+		
+	});
+	$('.banner-fb').click(function(e){
+		brandFollowTrack("facebook");
+	});
+	$('.mediaresource #download-asset').click(function(e){
+		Analytics.logAssetDownload($(this).data('id'));
+	});
+
+	if (typeof(FB)!='undefined') {
+		FB.Event.subscribe('edge.create', function(response){
+			s = s_gi(g_sOmnitureReportSuite);
+			s.linkTrackEvents = s.events = "event36";
+			s.prop48="facebook share";
+			s.linkTrackVars = "prop48,events";
+			s.tl(true, 'o', 'Social Media share');
+		});
+	}
+
+	if (typeof(digMag) != 'undefined'){
+		if(typeof(digLogin) != 'undefined'){
+			DigAnalytics.logSignIn(digLogin);
+		}
+	}
+
+
+});
+
+var Analytics = new Object();
+Analytics.logArticleComment = function(){
+	s = s_gi(g_sOmnitureReportSuite);
+	s.linkTrackVars="prop25,eVar25,events";
+	s.linkTrackEvents="event19";
+	s.events="event19";
+	s.prop25 = 'Article Comment';
+	s.tl(this,'o','Article Comments');
+};
+Analytics.logSocialSignin = function(provider){
+	s = s_gi(g_sOmnitureReportSuite);
+
+	s.linkTrackEvents = s.events = "event32";
+	s.prop19=provider;
+	s.linkTrackVars = "prop19,events";
+	s.tl(true, 'o', provider);
+};
+Analytics.logInternalSignin = function(){
+	s = s_gi(g_sOmnitureReportSuite);
+	s.linkTrackEvents = s.events = "event32";
+	s.prop19="Internal Login";
+	s.linkTrackVars = "prop19,events";
+	s.tl(true, 'o', 'Login');
+};
+Analytics.logAssetDownload = function(assetname){ 
+	s = s_gi(g_sOmnitureReportSuite); 
+	s.linkTrackVars="prop52,eVar37,events"; 
+	s.linkTrackEvents="event49"; 
+	s.events="event49"; 
+	s.prop52 = 'asset'+assetname;
+	eVar37= s.prop52;
+	s.tl(this,'o','Asset Download'); 
+} 
+
+/**
+ * Trigger Omniture and Google Analytics tracking code
+ * loc - Home, Footer, Header, Article
+ * network - Facebook, Twitter, LinkedIn, Googleplus 
+ * socialAction - Like, Unlike, Share, Follow, Tweet, Retweet, Favorite, Click
+ */
+function socialTrack(loc,network,socialAction) {
+	//Omniture
+	var trackString = network + ":" + loc + ":" + socialAction;
+	console.log("socialTrack() "+trackString);
+	s.prop48 = trackString;
+	s.eVar27 = "D=c48";
+	s.event36 = trackString;
+	s.linkTrackEvents=s.events="event36";
+	s.linkTrackVars = "prop48,eVar27,events";
+	s.tl(true, 'o', 'Social media');
+}
+
+function linkedInTrack() {
+	socialTrack("Article","LinkedIn","Share");
+};
+
+function followTrack() {
+	console.log("followTrack()");
+	s = s_gi(g_sOmnitureReportSuite);
+	s.linkTrackEvents = s.events = "event37";
+	s.prop49="social media";
+	s.linkTrackVars = "prop49,events";
+	s.tl(true, 'o', 'Social media follow');
+}
+function brandFollowTrack(network){
+	console.log("brandFollowTrack()");
+	s = s_gi(g_sOmnitureReportSuite);
+	s.eVar16="followed on:"+network;
+	s.linkTrackEvents = s.events = "event37";
+	s.prop49="social media";
+	s.linkTrackVars = "prop49,eVar16,events";
+	s.tl(true, 'o', 'Social media brand follow');
+    if (typeof IDG.Eloqua != "undefined") {
+        IDG.Eloqua.invoke_flash("social-" + network);
+	}
+}
+function sharingTrack(type) {
+	s = s_gi(g_sOmnitureReportSuite);
+	s.eVar16="Sharing on: " + type;
+	s.linkTrackEvents = s.events = "event37";
+	s.prop49="social media sharing";
+	s.linkTrackVars = "prop49,eVar16,events";
+	s.tl(true, 'o', 'Social Media Sharing');
+    if (typeof IDG.Eloqua != "undefined") {
+        IDG.Eloqua.invoke_flash("social-" + type);
+	}
+}
+function moduleTrack(moduleName,loc) {
+	console.log("moduleTrack()");
+	s = s_gi(g_sOmnitureReportSuite);
+	s.eVar42=moduleName;
+	s.eVar44=loc;
+	s.linkTrackEvents=s.events='event31';
+	s.tl(true, 'o', 'Module click');
+}
+function trackSlideshow(articleId, slideTitle, slideNumber) {
+	s = s_gi(g_sOmnitureReportSuite);
+	s.prop15="page number:" + slideNumber;
+	s.eVar15="D=c15";
+	s.tl(true, 'o', 'Track Slideshow: articleId:' + articleId + ' title:' + slideTitle + " Slide No.:" + slideNumber);
+}
+</script>
+
+<!-- SiteCatalyst code version: H.26.2.
+Copyright 1996-2013 Adobe, Inc. All Rights Reserved
+More info available at http://www.omniture.com -->
+
+<script language="JavaScript" type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/s_code.js"></script>
+<script language="JavaScript" type="text/javascript" id="omniVars"><!--
+g_sOmnitureReportSuite = "idgjavaworld"; 
+
+/* You may give each page an identifying name, server, and channel on
+the next lines. */
+//BEGIN OMNITURE VARS 
+s.pageName="JavaWorld:article:news:Design Patterns:2071777:Add dynamic Java code to your application";
+s.pageType="";
+if (typeof omnitureChannel != 'undefined'){
+s.channel=omnitureChannel;
+}
+s.prop1="source:JavaWorld";s.eVar1="D=c1";
+s.prop2="content type:news";s.eVar2="D=c2";
+s.prop3="display type:article:news";s.eVar3="D=c3";
+s.prop4="3012 days";s.eVar4="D=c4";
+
+s.prop6="";
+s.prop7="";s.eVar7="D=c7";
+s.prop9="category:Design Patterns";s.eVar9="D=c9";
+s.prop11="published:12-Jun-06";s.eVar11="D=c11";
+s.prop12="aid:2071777";s.eVar12="D=c12";
+s.prop13="";s.eVar13="D=c13";
+s.prop14="author:Li Yang";s.eVar14="D=c14";
+s.prop15="page number:1";s.eVar15="D=c15";
+s.prop17="uri:/article/2071777/design-patterns/add-dynamic-java-code-to-your-application.html";s.eVar17="D=c17";
+s.prop18="";s.eVar18="D=c18";
+s.prop24=getLoginStatusForOmniture();s.eVar24="D=c24";
+s.prop28=getTrackingToken('tk') ? "tokens:"+getTrackingToken('tk') : "";s.eVar28="D=c28";
+s.prop37="rpn:jvw:news:JavaWorld:article:news:Design Patterns:2071777:Add dynamic Java code to your application";s.eVar37="D=c37";
+s.prop39="";s.eVar39="D=c39";
+s.prop40="";
+s.prop41=IDG.GPT.getDisplayedAds(',') + ',' + IDG.GPT.getOtherAds(',');
+s.prop42=IDG.GPT.getModules(',');s.eVar42="D=c42";
+
+s.prop53="3188";s.eVar53="D=c53";
+s.prop54="Design Patterns,Java App Dev,Enterprise Java";s.eVar30="D=c54";
+s.eVar33=s.prop55="3188,3237,3219";s.eVar33="D=c55";
+s.prop56="Java";s.eVar40="D=c56";
+s.prop61="";s.eVar10="D=c61";
+
+//module tracking
+var sModules = '';
+for(var i in g_arrModules){
+	if(g_arrModules[i] && i != ''){
+		sModules += i+',';
+	}
+}
+sModules = sModules.replace(/,$/,'');
+s.prop42 = sModules;
+s.eVar42="D=c42";
+//now set events
+s.events="";
+
+
+	//article view
+	s.events=s.apl(s.events,'event33',',');
+	s.eVar41="12-Jun-06";
+
+
+
+
+//force all values to lower case for reporting consistency
+for(var p in s){
+	if(s[p] && p.match(/^(prop|ceVar)\d+$/)){
+		//console.log(p+": "+s[p]);
+		s[p] = s[p].toLowerCase();
+		//console.log(p+": "+s[p]);
+	}
+}
+//END OMNITURE VARS 
+
+/* Conversion Variables */
+s.campaign=getTrackingToken('tk') ? "tokens:"+getTrackingToken('tk') : "";
+
+/************* DO NOT ALTER ANYTHING BELOW THIS LINE ! **************/
+var s_code=s.t();if(s_code)document.write(s_code)//--></script>
+<script language="JavaScript" type="text/javascript"><!--
+if(navigator.appVersion.indexOf('MSIE')>=0)document.write(unescape('%3C')+'\!-'+'-')
+//--></script><noscript>&lt;img src="http://idgenterprise.112.2o7.net/b/ss/idgjavaworld/1/H.25--NS/0"
+height="1" width="1" border="0" alt="" /&gt;</noscript><!--/DO NOT REMOVE/-->
+<!-- End SiteCatalyst code version: H.26.2. -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+$thm.logPlEvent({"b":"jvw","e":"view","t":"article","id":"2071777"});
+</script>
+
+
+
+		<div id="loginModal"></div>
+		<div id="logoffModal"></div>
+
+		<style>
+		
+#loginModal #login_pop{ padding:20px; }
+#loginModal #close { position: absolute; right: 5px; top: 5px; }
+#loginModal .pullquote-container.filled{ border-top:none; }
+#loginModal #network{ padding:0 15px 15px; margin-bottom: 5px; background-color:#FFF; }
+.citeworld  #loginModal #network{ margin-top:50px; }
+#loginModal #network h2{ margin-top:.7em; }
+#loginModal #network ul { clear: both; list-style: none outside none; margin: 0; padding-left: 0; }
+#loginModal #network ul li{ padding:5px 0 10px; clear:both; margin-bottom:25px; }
+#loginModalul { clear: both; list-style: none outside none; margin: 0; padding-left: 0; }
+#loginModal ul li{ padding:5px 0 10px; }
+#loginModal #login_pop .btn-link:hover{ color:#FFF; }
+#loginModal #login_pop .btn-alt { background: -moz-linear-gradient(center top , #D67126 0%, #C16622 100%) repeat scroll 0 0 transparent; }
+#loginModal #login_pop a.btn-alt:hover { background: -moz-linear-gradient(center top , #C16622 0%, #D67126 100%) repeat scroll 0 0 transparent; }
+#loginModal #extra-nav-toggle a.open { background-position: 0 -50px; }
+#loginModal #extra-nav-toggle a {  display: block; float: left; height: 18px; width: 18px; }
+#loginModal #extra-nav-toggle{ display:block; }
+#loginModal #banner-search-term { background: #FFF; }
+#loginModal .pullquote-container p{ line-height:110%; }
+#loginModal .fontNormal{ font-weight:100; }
+#loginModal #network input{ float:left; margin-left:10px; }
+#loginModal #network input#banner-search-term, #loginModal #network input#banner-search-term{ margin-left:0; }
+#loginModal #network input.inputCheckbox{ margin-left:0; margin-right:10px; }
+#loginModal #network label{ width: 120px; text-align:right; float:left; margin-right:10px; }
+#loginModal .fontNormal{ font-weight:100; }
+#loginModal #socialComponentDiv{ margin: 20px auto 0; width:250px; }
+.citeworld #loginModal #socialComponentDiv{ margin: 50px auto 0; }
+#loginModal #login-link-switch { margin-top: 10px; display: inline-block; }
+#loginModal .popInput, #main-content .popInput{ padding: 5px 25px 5px 8px; -webkit-border-radius:5px; -moz-border-radius:5px; border-radius:5px; -webkit-box-shadow:inset 2px 2px 3px rgba(0,0,0,.5); -moz-box-shadow:inset 2px 2px 3px rgba(0,0,0,.5); box-shadow:inset 2px 2px 3px rgba(0,0,0,.5); }
+		
+		</style>
+
+	
+<script src="http://platform.twitter.com/widgets.js" id="twitter-wjs" charset="utf-8" async=""></script><div id="fb-root" class=" fb_reset"><div style="position: absolute; top: -10000px; height: 0px; width: 0px; "><div><iframe name="fb_xdm_frame_http" frameborder="0" allowtransparency="true" scrolling="no" id="fb_xdm_frame_http" aria-hidden="true" title="Facebook Cross Domain Communication Frame" tabindex="-1" style="border: none; " src="./Add dynamic Java code to your application   JavaWorld_files/saved_resource.htm"></iframe><iframe name="fb_xdm_frame_https" frameborder="0" allowtransparency="true" scrolling="no" id="fb_xdm_frame_https" aria-hidden="true" title="Facebook Cross Domain Communication Frame" tabindex="-1" style="border: none; " src="./Add dynamic Java code to your application   JavaWorld_files/saved_resource.htm"></iframe></div></div><div style="position: absolute; top: -10000px; height: 0px; width: 0px; "><div><iframe name="f1e2fec0a" frameborder="0" allowtransparency="true" scrolling="no" style="display: none; " src="./Add dynamic Java code to your application   JavaWorld_files/saved_resource.htm"></iframe></div></div></div><script src="./Add dynamic Java code to your application   JavaWorld_files/all.js" id="facebook-jssdk" async=""></script><script src="./Add dynamic Java code to your application   JavaWorld_files/in.js" async=""></script><script src="http://apis.google.com/js/plusone.js" async=""></script><script language="javascript" type="text/javascript" src="./Add dynamic Java code to your application   JavaWorld_files/chartbeat.js"></script><iframe id="google_osd_static_frame_3757785668130" name="google_osd_static_frame" style="display: none; width: 0px; height: 0px; "></iframe></body></html>

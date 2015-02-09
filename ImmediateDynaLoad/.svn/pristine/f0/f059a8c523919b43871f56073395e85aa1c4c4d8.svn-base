@@ -1,0 +1,17 @@
+package org.power.dynaload.startup;
+
+public final class Config
+{
+    /** 支持动态加载的代码的路径. **/
+    private String dyncodePath;
+
+    public String getDyncodePath()
+    {
+        return dyncodePath;
+    }
+
+    public void setDyncodePath(String dyncodePath)
+    {
+        this.dyncodePath = dyncodePath;
+    }
+}

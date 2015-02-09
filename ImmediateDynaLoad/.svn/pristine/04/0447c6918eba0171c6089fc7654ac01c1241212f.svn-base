@@ -1,0 +1,46 @@
+package org.power.dynaload.startup;
+
+/**
+ * 启动类.
+ * @author li.zhang
+ * 2014-9-12
+ *
+ */
+public class Startup
+{
+    /** 配置信息. **/
+    private Config config;
+    
+    /**
+     * 系统启动.
+     */
+    public void start()
+    {
+        //1.加载启动配置.
+        initConfig();
+        
+        //2.创建代码动态加载的树图.
+        loadServcies();
+    }
+
+    /**
+     * 初始化配置.
+     */
+    private void initConfig()
+    {
+        Config conf = new Config();
+        conf.setDyncodePath("dyncode");//默认,dyncode目录下的代码是支持动态加载的.
+        
+        this.config = conf;
+    }
+
+    private void loadServcies()
+    {
+        
+    }
+
+    public Config getConfig()
+    {
+        return config;
+    }
+}

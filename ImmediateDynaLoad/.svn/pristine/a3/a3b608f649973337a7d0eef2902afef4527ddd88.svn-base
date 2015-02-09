@@ -1,0 +1,57 @@
+package org.power.dynaload.compile;
+
+import java.io.File;
+
+import com.sun.tools.javac.Main;
+
+
+/**
+ * 动态代码编译器.
+ * @author li.zhang
+ * 2014-9-12
+ *
+ */
+public final class DyncSourceCompiler
+{
+    /**
+     * 编译srcFilePath目录下的代码.
+     * @param dyncodeSourcePath 编译该目录下的java源码
+     * @param dyncodeCompilePath 编译后代码存放的路径.
+     */
+    public void compile(String srcFilePath, String compilePath)
+    {
+        File srcFileDir = new File(srcFilePath);
+        if (!srcFileDir.isDirectory())
+        {
+            return;
+        }
+        
+        transval(srcFileDir);
+    }
+
+    private void transval(File srcFileDir)
+    {
+        String outputDir = System.getProperty("user.dir");
+        File[] children = srcFileDir.listFiles();
+        if (null == children)
+        {
+            return;
+        }
+        
+        for (int i = 0; i < children.length; i++)
+        {
+            File child = children[i];
+            if (child.isDirectory())
+            {
+                transval(child);
+            }
+            else 
+            {
+                if (child.isFile() && child.getName().endsWith(".java"))
+                {
+                    Main.compile(new String[]{"-d", outputDir, child.getAbsolutePath()});
+                }
+            }
+        }
+    }
+}

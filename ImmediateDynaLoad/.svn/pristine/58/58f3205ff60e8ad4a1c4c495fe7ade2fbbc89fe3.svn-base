@@ -1,0 +1,65 @@
+package org.power.dynaload.proxy;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+
+/**
+ * 动态服务类的代理.
+ * @author li.zhang
+ * 2014-9-15
+ *
+ */
+public class DyncServProxy implements InvocationHandler
+{
+    /** 类加载. **/
+    private final ClassLoader loader;
+    
+    /** 类名. **/
+    private final String className;
+    
+    private Class<?> backendClzz;
+    
+    private Object backendObj;
+    
+    /** 标识代理对应的类的源文件是否有变动. **/
+    private boolean changed;
+    
+    /**
+     * 构造方法.
+     */
+    public DyncServProxy(ClassLoader loader, String className)
+    {
+        this.loader = loader;
+        this.className = className;
+        
+        try
+        {
+            backendClzz = loader.loadClass(className);
+            backendObj = backendClzz.newInstance();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args)
+        throws Throwable
+    {
+        if (changed)
+        {
+            backendClzz = loader.loadClass(className);
+            backendObj = backendClzz.newInstance();
+            
+            changed = false;
+        }
+        
+        return method.invoke(backendObj, args);
+    }
+
+    public void notifyChanged()
+    {
+        this.changed = true;
+    }
+}

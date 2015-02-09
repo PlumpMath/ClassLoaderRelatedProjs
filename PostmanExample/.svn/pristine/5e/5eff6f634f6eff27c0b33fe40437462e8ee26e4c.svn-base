@@ -1,0 +1,635 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0034)http://dustin.iteye.com/blog/46393 -->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" dir="ltr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站</title>
+    <meta name="description" content=" JavaWorld一篇题为 Add dynamic code to your application 的文章介绍了如何使用动态代理技术使普通的java源代码具有像jsp一样的动态编译效果，十分有趣。  使用� ...">
+    <meta name="keywords" content="Java, JSP, Spring, JVM, Tomcat java动态代码的实现以及Class的卸载">
+    <link rel="shortcut icon" href="http://dustin.iteye.com/images/favicon.ico" type="image/x-icon">
+    <link rel="search" type="application/opensearchdescription+xml" href="http://dustin.iteye.com/open_search.xml" title="ITeye">
+    <link href="http://dustin.iteye.com/rss" rel="alternate" title="达观.平和" type="application/rss+xml">
+    <link href="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/blog.css" media="screen" rel="stylesheet" type="text/css">
+<link href="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/blue.css" media="screen" rel="stylesheet" type="text/css">
+    <script type="text/javascript" async="" src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/ga.js"></script><script src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/application.js" type="text/javascript"></script>
+    <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-535605-1']);
+  _gaq.push(['_setDomainName', 'iteye.com']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+      <link href="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/SyntaxHighlighter.css" media="screen" rel="stylesheet" type="text/css">
+  <script src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/shCoreCommon.js" type="text/javascript"></script>
+<script src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/hotkey.js" type="text/javascript"></script>
+  <script src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/code_favorites.js" type="text/javascript"></script>
+<script src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/weiboshare.js" type="text/javascript"></script>
+  <style type="text/css">.dp-j .annotation { color: #646464; }.dp-j .number { color: #C00000; }</style></head>
+  <body>
+    <div id="header">
+      <div id="blog_site_nav">
+  <a href="http://www.iteye.com/" class="homepage">首页</a>
+  <a href="http://www.iteye.com/news">资讯</a>
+  <a href="http://www.iteye.com/magazines">精华</a>
+  <a href="http://www.iteye.com/forums">论坛</a>
+  <a href="http://www.iteye.com/ask">问答</a>
+  <a href="http://www.iteye.com/blogs">博客</a>
+  <a href="http://www.iteye.com/blogs/subjects">专栏</a>
+  <a href="http://www.iteye.com/groups">群组</a>
+  <a href="http://dustin.iteye.com/blog/46393#" onclick="return false;" id="msna"><u>更多</u> <small>▼</small></a>
+  <div class="quick_menu" style="display:none;">
+    <a target="_blank" href="http://job.iteye.com/iteye">招聘</a>
+    <a href="http://www.iteye.com/search">搜索</a>
+  </div>
+</div>
+
+      <div id="user_nav">
+      <a href="http://dustin.iteye.com/login" class="welcome" title="登录">您还未登录 !</a>
+    <a href="http://dustin.iteye.com/login">登录</a>
+    <a href="http://dustin.iteye.com/signup" class="nobg">注册</a>
+  </div>
+
+    </div>
+
+    <div id="page">
+      <div id="branding" class="clearfix">
+        <div id="blog_name">
+          <h1><a href="http://dustin.iteye.com/">达观.平和</a></h1>
+        </div>
+        <div id="fd"></div>
+        <div id="blog_navbar">
+          <ul>
+            <li class="blog_navbar_for"><a href="http://dustin.iteye.com/"><strong>博客</strong></a></li>
+            <li><a href="http://dustin.iteye.com/weibo">微博</a></li>
+            <li><a href="http://dustin.iteye.com/album">相册</a></li>
+            <li><a href="http://dustin.iteye.com/link">收藏</a></li>
+            <li><a href="http://dustin.iteye.com/blog/guest_book">留言</a></li>
+            <li><a href="http://dustin.iteye.com/blog/profile">关于我</a></li>
+          </ul>
+    
+          <div class="search">
+            <form action="http://dustin.iteye.com/blog/search" method="get">
+              <input class="search_text" id="query" name="query" style="margin-left: 10px;width: 110px;" type="text" value="">
+              <input class="submit_search" type="submit" value="">
+            </form>
+          </div> 
+          <div id="fd"></div>         
+        </div>
+      </div>
+      
+      <div id="content" class="clearfix">
+        <div id="main">
+          
+
+
+
+          
+
+
+<div class="h-entry" style="display:none">
+  <a href="http://dustin.iteye.com/" class="p-author" target="_blank">Dustin</a>
+</div>
+
+
+<div class="blog_main">
+  <div class="blog_title">
+    <h3>
+      <a href="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站.htm">java动态代码的实现以及Class的卸载</a>
+      <em class="actions">      </em>
+    </h3>
+    <ul class="blog_categories"><strong>博客分类：</strong> <li><a href="http://dustin.iteye.com/category/24779">coding</a></li> </ul>
+        <div class="news_tag"><a href="http://www.iteye.com/blogs/tag/Java">Java</a><a href="http://www.iteye.com/blogs/tag/JSP">JSP</a><a href="http://www.iteye.com/blogs/tag/Spring">Spring</a><a href="http://www.iteye.com/blogs/tag/JVM">JVM</a><a href="http://www.iteye.com/blogs/tag/Tomcat">Tomcat</a>&nbsp;</div>
+  </div>
+
+  <div id="blog_content" class="blog_content">
+    <p>&nbsp;JavaWorld一篇题为 <a href="http://www.javaworld.com/javaworld/jw-06-2006/jw-0612-dynamic.html">Add dynamic code to your application</a> 的文章介绍了如何使用动态代理技术使普通的java源代码具有像jsp一样的动态编译效果，十分有趣。<br>&nbsp; 使用过jsp技术的程序员都知道，应用部署以后，我们是可以直接修改jsp源文件的。当客户请求这个被修改过的jsp文件时，web容器会自动监测出该jsp文件已经被更新，因此重新编译该jsp文件，向客户返回最新的信息。但是，对于一般的java源文件，如果我们仅仅修改源文件，而不重新编译部署的话，web容器是不会处理的。<br>&nbsp;&nbsp; 那我们可不可以让普通的java源文件也具有jsp一样的效果呢，也就是说，程序在运行过程中，我们一旦修改某个类的源文件，程序会自动监测出来，并重新编译该文件，同时进行重新连接，动态更新。答案是肯定的，而且方法并不复杂。主要思想是当执行一个接口的操作时，我们使用动态代理技术将其拦截，然后监测实现该接口的类的源文件是否已经更新，如果没有更新，则把方法交给相应的对象的方法执行，否则，我们重新编译该类的源文件，同时重新加载该类，然后，我们就可以通过该类获得最新的对象以执行相应的操作了。<br>&nbsp;&nbsp;&nbsp; 系统的总体架构是是一个Dynamic Proxy，而实现的重点是捕捉到接口方法时在调用invoke的时候如何动态编译和重新加载。编译我们可以使用java提供的com.sun.tools.javac.Main.compile方法（要将jdk lib目录下的tool.jar加入到classpath中），通过该方法我们可以将指定的源文件进行编译并将相应的class文件放置到指定的目录中。<br>&nbsp;&nbsp;&nbsp;&nbsp; 为了能够进行重新连接，我们必须要把原来已经被加载的类卸载，否则我们是不能够将最新的类加载到jvm中去的。但是，我们卸载时却不能指定把classloader装载的类中的某一个类卸载掉，因此，我们只好重新生成一个classloader，通过它来重新加载我们新编译好的class文件。在这里，URLClassLoader是一个很好的选择。</p>
+<p>&nbsp;</p>
+<p>updated（2009-3-16）:</p>
+<p>&nbsp;&nbsp; JVM中的Class只有满足以下三个条件，才能被GC回收，也就是该Class被卸载（unload）：</p>
+<p>&nbsp;&nbsp; - 该类所有的实例都已经被GC，也就是JVM中不存在该Class的任何实例。<br>&nbsp;&nbsp; - 加载该类的ClassLoader已经被GC。<br>&nbsp;&nbsp; - 该类的java.lang.Class 对象没有在任何地方被引用，如不能在任何地方通过反射访问该类的方法.</p>
+  </div>
+
+  
+
+
+  
+  
+  <div id="bottoms" class="clearfix">
+    
+    <div id="share_weibo">分享到：
+      <a data-type="sina" href="javascript:;" title="分享到新浪微博"><img src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/sina.jpg"></a>
+      <a data-type="qq" href="javascript:;" title="分享到腾讯微博"><img src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/tec.jpg"></a>
+    </div>
+  </div>
+
+  <div class="blog_nav">
+    <div class="pre_next">
+      <a href="http://dustin.iteye.com/blog/46407" class="next" title="长尾理论【转】">长尾理论【转】</a>
+      |
+      <a href="http://dustin.iteye.com/blog/44291" class="pre" title="使用JDBC时Class.forName()的作用">使用JDBC时Class.forName()的作用</a>
+    </div>
+  </div>
+  <div class="blog_bottom">
+    <ul>
+      <li>2007-01-11 22:00</li>
+      <li>浏览 9426</li>
+      <li><a href="http://dustin.iteye.com/blog/46393#comments">评论(20)</a></li>
+       <li>论坛回复 / <a href="http://dustin.iteye.com/topic/46393">浏览</a> (19 / 10600)</li> 
+      
+            
+      <li class="last"><a href="http://www.iteye.com/wiki/blog/46393" target="_blank" class="more">相关推荐</a></li>
+    </ul>
+  </div>
+
+  <div class="blog_comment">
+    <h5>评论</h5>
+    <a id="comments" name="comments"></a>
+    <div id="bc2279462">
+  <div class="comment_title">
+    20 楼
+    <a href="http://liuinsect.iteye.com/" target="_blank" title="liuInsect">liuInsect</a>
+    2012-08-31&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">其实你没有说到“怎么卸载一个class文件”啊，只是说怎么让他被GC，但是GC的本身就是不确定的，有没有可以直接指定 “马上将class卸载掉”的方法呢？</div>
+</div>
+
+<div id="bc205727">
+  <div class="comment_title">
+    19 楼
+    <a href="http://juyin.iteye.com/" target="_blank" title="juyin">juyin</a>
+    2007-01-15&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">JDK6.0中加入对脚本语言的支持也应该有这种的考虑吧，只是由于脚本是解释执行的，比较好处理。
+<br>感觉还是有一定的应用场景
+<br>有没有更详细的资料？</div>
+</div>
+
+<div id="bc205604">
+  <div class="comment_title">
+    18 楼
+    <a href="http://boogie.iteye.com/" target="_blank" title="boogie">boogie</a>
+    2007-01-14&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">kdekid 写道</div><div class="quote_div"><div class="quote_title">Dustin 写道</div><div class="quote_div"><div class="quote_title">引用</div><div class="quote_div">PermGen space 是 hotspot 存放永久生成(permanent generated)的数据的空间，包括类、intern string等</div>
+<br>
+<br>Tomcat等JSP容器都支持热部署，它们是否存在这样的问题？如果存在，它们是使用什么机制解决的呢？没有深入研究过Tomcat，迷惑中。</div>
+<br>一个最典型的例子是，你在IDE中（包括 netbeans 和 ecilpse）不断 restart 某个webapp，特别是用到了 spring/hibernate 的 webapp，就会出现这个 error。这可能是由于 spring 对程序结束的清除工作做得不是很好。在实际的部署中，基于 spring 的程序如果单是重新deploy而不是重新启动应用服务器，也会出现类似情况。</div>
+<br>的确如此！</div>
+</div>
+
+<div id="bc205563">
+  <div class="comment_title">
+    17 楼
+    <a href="http://complystill.iteye.com/" target="_blank" title="歆渊">歆渊</a>
+    2007-01-14&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">zkj_beyond 写道</div><div class="quote_div">jsp和java类是完全不一样的概念。
+<br>
+<br>jsp-&gt;servlet 在web容器中，你的servlet是单例的，也是无状态的，<span style="color: red;">线程安全的</span>。也就是只有一个对象，
+<br>jsp改变以后，web容器只要把相应的servlet对象更新就好了。
+<br>
+<br>
+<br>而java呢？
+<br>可能这个类在你的应用中有n个实例，与这些实例单向，双向关联的又有n个实例。如果你修改了，这些jvm存在的老的实例对象怎么办？？？？
+<br>
+<br>java这类静态语言无法实现象asp,php,jsp的效果的。</div>
+<br>同意, 动态替换代码必需重新构造新的对象实例才能生效, 所以基本上只有是无状态对象在容器中执行的情况下才有现实意义.</div>
+</div>
+
+<div id="bc205428">
+  <div class="comment_title">
+    16 楼
+    <a href="http://zkj-beyond.iteye.com/" target="_blank" title="zkj_beyond">zkj_beyond</a>
+    2007-01-13&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">jsp和java类是完全不一样的概念。
+<br>
+<br>jsp-&gt;servlet 在web容器中，你的servlet是单例的，也是无状态的，<span style="color: red;">线程安全的</span>。也就是只有一个对象，
+<br>jsp改变以后，web容器只要把相应的servlet对象更新就好了。
+<br>
+<br>
+<br>而java呢？
+<br>可能这个类在你的应用中有n个实例，与这些实例单向，双向关联的又有n个实例。如果你修改了，这些jvm存在的老的实例对象怎么办？？？？
+<br>
+<br>java这类静态语言无法实现象asp,php,jsp的效果的。</div>
+</div>
+
+<div id="bc205264">
+  <div class="comment_title">
+    15 楼
+    <a href="http://yulimin.iteye.com/" target="_blank" title="YuLimin">YuLimin</a>
+    2007-01-13&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">代理，面向接口编程
+<br><div class="dp-highlighter" id=""><div class="bar"><div class="tools">Java代码 <embed wmode="transparent" src="/javascripts/syntaxhighlighter/clipboard_new.swf" width="14" height="15" flashvars="clipboard=public%20interface%20Postman%20%7B%0A%09%0A%09void%20deliverMessage(String%20msg)%3B%0A%7D%0A" quality="high" allowscriptaccess="always" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer">&nbsp;<a href="javascript:void()" title="收藏这段代码" onclick="code_favorites_do_favorite(this);return false;"><img class="star" src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/icon_star.png" alt="收藏代码"><img class="spinner" src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/spinner.gif" style="display:none"></a></div></div><ol start="1" class="dp-j"><li><span><span class="keyword">public</span><span>&nbsp;</span><span class="keyword">interface</span><span>&nbsp;Postman&nbsp;{&nbsp;&nbsp;</span></span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></li><li><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">void</span><span>&nbsp;deliverMessage(String&nbsp;msg);&nbsp;&nbsp;</span></span></li><li><span>}&nbsp;&nbsp;</span></li></ol></div><pre class="java" name="code" style="display: none; " codeable_id="205264" codeable_type="BlogComment" source_url="http://dustin.iteye.com/blog/46393#bc205264" pre_index="0" title="java动态代码的实现以及Class的卸载">public interface Postman {
+	
+	void deliverMessage(String msg);
+}
+</pre>
+<br>
+<br>这个容易做到，难的是有没有办法做到动态接口动态实现之类的呢？
+<br>这在得Class.forName了？还是另有它法？</div>
+</div>
+
+<div id="bc205250">
+  <div class="comment_title">
+    14 楼
+    <a href="http://dustin.iteye.com/" target="_blank" title="Dustin">Dustin</a>
+    2007-01-12&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">引用</div><div class="quote_div">那就研究一下，楼上的！</div>
+<br>
+<br>嗯，有机会的话一定会。</div>
+</div>
+
+<div id="bc205247">
+  <div class="comment_title">
+    13 楼
+    <a href="http://godlikeme.iteye.com/" target="_blank" title="Godlikeme">Godlikeme</a>
+    2007-01-12&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">magice 写道</div><div class="quote_div"><div class="quote_title">Godlikeme 写道</div><div class="quote_div">动态加载class 不是什么好主意，可以说是一个馊主意。</div>为什么不具体说说为什么是一个馊注意呢!</div>
+<br>3年前就做过一个自动测试机，用的是动态生成unit Test类的测试逻辑，然后动态编译加载自动执行测试，对于这样的小工具还可以。再有就是热部署了。
+<br>对于应用来讲，是一个不顾一切的捣洞技术，带来了系统运行不稳定的一系列问题。比如SPRING框架下beanFactory肯定会有问题。</div>
+</div>
+
+<div id="bc205220">
+  <div class="comment_title">
+    12 楼
+    <a href="http://hing007210.iteye.com/" target="_blank" title="hing007210">hing007210</a>
+    2007-01-12&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">比较有创意，收藏</div>
+</div>
+
+<div id="bc205216">
+  <div class="comment_title">
+    11 楼
+    <a href="http://galaxystar.iteye.com/" target="_blank" title="galaxystar">galaxystar</a>
+    2007-01-12&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">那就研究一下，楼上的！</div>
+</div>
+
+<div id="bc205191">
+  <div class="comment_title">
+    10 楼
+    <a href="http://kdekid.iteye.com/" target="_blank" title="kdekid">kdekid</a>
+    2007-01-12&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">Dustin 写道</div><div class="quote_div"><div class="quote_title">引用</div><div class="quote_div">PermGen space 是 hotspot 存放永久生成(permanent generated)的数据的空间，包括类、intern string等</div>
+<br>
+<br>Tomcat等JSP容器都支持热部署，它们是否存在这样的问题？如果存在，它们是使用什么机制解决的呢？没有深入研究过Tomcat，迷惑中。</div>
+<br>一个最典型的例子是，你在IDE中（包括 netbeans 和 ecilpse）不断 restart 某个webapp，特别是用到了 spring/hibernate 的 webapp，就会出现这个 error。这可能是由于 spring 对程序结束的清除工作做得不是很好。在实际的部署中，基于 spring 的程序如果单是重新deploy而不是重新启动应用服务器，也会出现类似情况。</div>
+</div>
+
+<div id="bc205180">
+  <div class="comment_title">
+    9 楼
+    <a href="http://dustin.iteye.com/" target="_blank" title="Dustin">Dustin</a>
+    2007-01-12&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">引用</div><div class="quote_div">PermGen space 是 hotspot 存放永久生成(permanent generated)的数据的空间，包括类、intern string等</div>
+<br>
+<br>Tomcat等JSP容器都支持热部署，它们是否存在这样的问题？如果存在，它们是使用什么机制解决的呢？没有深入研究过Tomcat，迷惑中。</div>
+</div>
+
+<div id="bc204781">
+  <div class="comment_title">
+    8 楼
+    <a href="http://kdekid.iteye.com/" target="_blank" title="kdekid">kdekid</a>
+    2007-01-12&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">dwangel 写道</div><div class="quote_div">调试的时候还是有点用的，webwork的quick start也有这方面的功能。
+<br>
+<br><div class="quote_title">引用</div><div class="quote_div">
+<br>jvm存放生成的class的heap是有限的，而一部分过去的class还存在引用而不会被gc。所以这样做最后的后果是导致 java.lang.OutOfMemoryError: PermGen space。
+<br></div>
+<br>如果仅仅是动态加载同一个类的更新版本呢？</div>
+<br>如果旧的类的引用依旧存在，始终会内存不足的。hotspot 的机制就是如此，这是改不了的。PermGen space 是 hotspot 存放<strong>永久</strong>生成(permanent generated)的数据的空间，包括类、intern string等。</div>
+</div>
+
+<div id="bc204749">
+  <div class="comment_title">
+    7 楼
+    <a href="http://lucaslee.iteye.com/" target="_blank" title="LucasLee">LucasLee</a>
+    2007-01-12&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">虽然没有想出它合适的应用场景,<br>但是新颖的思路挺不错的.<br>说不定什么时候会用得上,留个印象先,挺好.</div>
+</div>
+
+<div id="bc204705">
+  <div class="comment_title">
+    6 楼
+    <a href="http://adam.iteye.com/" target="_blank" title="adamzhao">adamzhao</a>
+    2007-01-12&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">&lt;br/&gt;<br>&lt;strong&gt;Dustin 写道：&lt;/strong&gt;&lt;br/&gt;<br>&lt;div class='quote_div'&gt;&nbsp;JavaWorld一篇题为 &lt;a href='http://www.javaworld.com/javaworld/jw-06-2006/jw-0612-dynamic.html'&gt;Add dynamic code to your application&lt;/a&gt; 的文章介绍了如何使用动态代理技术使普通的java源代码具有像jsp一样的动态编译效果，十分有趣。&lt;br/&gt;<br>&nbsp; 使用过jsp技术的程序员都知道，应用部署以后，我们是可以直接修改jsp源文件的。当客户请求这个被修改过的jsp文件时，web容器会自动监测出该jsp文件已经被更新，因此重新编译该jsp文件，向客户返回最新的信息。但是，对于一般的java源文件，如果我们仅仅修改源文件，而不重新编译部署的话，web容器是不会处理的。&lt;br/&gt;<br>&nbsp;&nbsp; 那我们可不可以让普通的java源文件也具有jsp一样的效果呢，也就是说，程序在运行过程中，我们一旦修改某个类的源文件，程序会自动监测出来，并重新编译该文件，同时进行重新连接，动态更新。答案是肯定的，而且方法并不复杂。主要思想是当执行一个接口的操作时，我们使用动态代理技术将其拦截，然后监测实现该接口的类的源文件是否已经更新，如果没有更新，则把方法交给相应的对象的方法执行，否则，我们重新编译该类的源文件，同时重新加载该类，然后，我们就可以通过该类获得最新的对象以执行相应的操作了。&lt;br/&gt;<br>&nbsp;&nbsp;&nbsp; 系统的总体架构是是一个Dynamic Proxy，而实现的重点是捕捉到接口方法时在调用invoke的时候如何动态编译和重新加载。编译我们可以使用java提供的com.sun.tools.javac.Main.compile方法（要将jdk lib目录下的tool.jar加入到classpath中），通过该方法我们可以将指定的源文件进行编译并将相应的class文件放置到指定的目录中。&lt;br/&gt;<br>&nbsp;&nbsp;&nbsp;&nbsp; 为了能够进行重新连接，我们必须要把原来已经被加载的类卸载，否则我们是不能够将最新的类加载到jvm中去的。但是，我们卸载时却不能指定把classloader装载的类中的某一个类卸载掉，因此，我们只好重新生成一个classloader，通过它来重新加载我们新编译好的class文件。在这里，URLClassLoader是一个很好的选择。&lt;/div&gt;<br>&lt;p&gt;&nbsp;&lt;/p&gt;<br>&lt;p&gt;&nbsp;&lt;/p&gt;<br>&lt;p&gt;热部署还是很有用的，只是实施方案需要斟酌一下。&lt;br/&gt;<br>&lt;br/&gt;<br>&lt;br/&gt;<br>&lt;br/&gt;<br>&lt;/p&gt;</div>
+</div>
+
+<div id="bc204676">
+  <div class="comment_title">
+    5 楼
+    <a href="http://dwangel.iteye.com/" target="_blank" title="dwangel">dwangel</a>
+    2007-01-12&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">调试的时候还是有点用的，webwork的quick start也有这方面的功能。<br><br><div class="quote_title">引用</div><div class="quote_div"><br>jvm存放生成的class的heap是有限的，而一部分过去的class还存在引用而不会被gc。所以这样做最后的后果是导致 java.lang.OutOfMemoryError: PermGen space。<br></div><br>如果仅仅是动态加载同一个类的更新版本呢？</div>
+</div>
+
+<div id="bc204671">
+  <div class="comment_title">
+    4 楼
+    <a href="http://lamono.iteye.com/" target="_blank" title="lamono">lamono</a>
+    2007-01-12&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">感觉没必要~！</div>
+</div>
+
+<div id="bc204647">
+  <div class="comment_title">
+    3 楼
+    <a href="http://magice.iteye.com/" target="_blank" title="magice">magice</a>
+    2007-01-12&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content"><div class="quote_title">Godlikeme 写道</div><div class="quote_div">动态加载class 不是什么好主意，可以说是一个馊主意。</div>为什么不具体说说为什么是一个馊注意呢!</div>
+</div>
+
+<div id="bc204440">
+  <div class="comment_title">
+    2 楼
+    <a href="http://godlikeme.iteye.com/" target="_blank" title="Godlikeme">Godlikeme</a>
+    2007-01-11&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">动态加载class 不是什么好主意，可以说是一个馊主意。</div>
+</div>
+
+<div id="bc204435">
+  <div class="comment_title">
+    1 楼
+    <a href="http://kdekid.iteye.com/" target="_blank" title="kdekid">kdekid</a>
+    2007-01-11&nbsp;&nbsp;
+    
+    
+  </div>
+  <div class="comment_content">jvm存放生成的class的heap是有限的，而一部分过去的class还存在引用而不会被gc。所以这样做最后的后果是导致 java.lang.OutOfMemoryError: PermGen space。</div>
+</div>
+
+
+    
+    
+  </div>
+
+  <div class="blog_comment">
+    <h5>发表评论</h5>
+            <p style="text-align:center; margin-top:30px;margin-bottom:0px;"><a href="http://dustin.iteye.com/login" style="background-color:white;"> <img src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/login_icon.png" style="vertical-align:middle; margin-right: 10px;"></a><a href="http://dustin.iteye.com/login">  您还没有登录,请您登录后再发表评论 </a></p>
+      </div>
+</div>
+
+
+<script type="text/javascript">
+  dp.SyntaxHighlighter.HighlightAll('code', true, true);
+
+  $$('#main .blog_content pre[name=code]').each(function(pre, index){ // blog content
+    var post_id = 46393;
+    var location = window.location;
+    source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+    pre.writeAttribute('codeable_id', post_id);
+    pre.writeAttribute('codeable_type', "Blog");
+    pre.writeAttribute('source_url', source_url);
+    pre.writeAttribute('pre_index', index);
+    pre.writeAttribute('title', 'java动态代码的实现以及Class的卸载');
+  });
+
+  fix_image_size($$('div.blog_content img'), 700);
+
+  function processComment() {
+    $$('#main .blog_comment > div').each(function(comment){// comment
+      var post_id = comment.id.substr(2);
+      $$("#"+comment.id+" pre[name=code]").each(function(pre, index){
+        var location = window.location;
+        source_url = location.protocol + "//" + location.host + location.pathname + location.search;
+        source_url += "#" + comment.id;
+        pre.writeAttribute('codeable_id', post_id);
+        pre.writeAttribute('codeable_type', "BlogComment");
+        pre.writeAttribute('source_url', source_url);
+        pre.writeAttribute('pre_index', index);
+        pre.writeAttribute('title', 'java动态代码的实现以及Class的卸载');
+      });
+    });
+  }
+
+  function quote_comment(id) {
+    new Ajax.Request('/editor/quote', {
+      parameters: {'id':id, 'type':'BlogComment'},
+      onSuccess:function(response){editor.bbcode_editor.textarea.insertAfterSelection(response.responseText);
+        Element.scrollTo(editor.bbcode_editor.textarea.element);}
+    });
+  }
+
+  code_favorites_init();
+  processComment();
+  new WeiboShare({share_buttons: $('share_weibo'), img_scope: $('blog_content')});
+</script>
+
+
+
+
+        </div>
+
+        <div id="local">
+          <div class="local_top"></div>
+          <div id="blog_owner">
+  <div id="blog_owner_logo"><a href="http://dustin.iteye.com/"><img alt="Dustin的博客" class="logo" src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/3e36cd14-1492-4826-b497-30ae98c65d2a.jpg" title="Dustin的博客: 达观.平和" width=""></a></div>
+  <div id="blog_owner_name">Dustin</div>
+</div>
+
+          <div id="blog_actions">
+            <ul>
+              <li>浏览: 181351 次</li>
+              <li>性别: <img alt="Icon_minigender_1" src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/icon_minigender_1.gif" title="男"></li>
+              <li>来自: 广州/成都</li>
+              <li><img src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/offline.gif"></li>
+              
+            </ul>
+          </div>
+          <div id="user_visits" class="clearfix">
+            <h5>最近访客 <span style="font-weight:normal;font-size:12px;padding-left:30px;"><a href="http://dustin.iteye.com/blog/user_visits">更多访客&gt;&gt;</a></span></h5>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://slayerlyy.iteye.com/" target="_blank"><img alt="slayerlyy的博客" class="logo" src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/65af1454-e582-39c4-a54a-39f4242be343-thumb.jpg" title="slayerlyy的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://slayerlyy.iteye.com/" target="_blank" title="slayerlyy">slayerlyy</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://hemahehe.iteye.com/" target="_blank"><img alt="hemahehe的博客" class="logo" src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/user-logo-thumb.gif" title="hemahehe的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://hemahehe.iteye.com/" target="_blank" title="hemahehe">hemahehe</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://dylinshi126.iteye.com/" target="_blank"><img alt="dylinshi126的博客" class="logo" src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/user-logo-thumb.gif" title="dylinshi126的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://dylinshi126.iteye.com/" target="_blank" title="dylinshi126">dylinshi126</a></div>
+              </div>
+            
+              <div class="user_visit">
+                <div class="logo"><a href="http://zhuzhuyuan.iteye.com/" target="_blank"><img alt="zhuzhuyuan的博客" class="logo" src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/362217b5-d3b8-3b0a-925b-ce1385a1c07f-thumb.jpg" title="zhuzhuyuan的博客: " width="48px"></a></div>
+                <div class="left"><a href="http://zhuzhuyuan.iteye.com/" target="_blank" title="zhuzhuyuan">zhuzhuyuan</a></div>
+              </div>
+            
+          </div>
+
+          
+
+                      <div id="blog_menu">
+              <h5>文章分类</h5>
+              <ul>
+                <li><a href="http://dustin.iteye.com/">全部博客 (72)</a></li>
+                
+                  <li><a href="http://dustin.iteye.com/category/24779">coding (33)</a></li>
+                
+                  <li><a href="http://dustin.iteye.com/category/24777">algorithm (3)</a></li>
+                
+                  <li><a href="http://dustin.iteye.com/category/8306">design pattern (6)</a></li>
+                
+                  <li><a href="http://dustin.iteye.com/category/24780">tools&amp;platforms (8)</a></li>
+                
+                  <li><a href="http://dustin.iteye.com/category/8333">miscellaneous (20)</a></li>
+                
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>社区版块</h5>
+              <ul>
+                <li><a href="http://dustin.iteye.com/blog/news">我的资讯</a> (0)</li>
+                <li>
+                  <a href="http://dustin.iteye.com/blog/post">我的论坛</a> (25)
+                </li>
+                <li><a href="http://dustin.iteye.com/blog/answered_problems">我的问答</a> (0)</li>
+              </ul>
+            </div>
+            <div id="month_blogs">
+              <h5>存档分类</h5>
+              <ul>
+                
+                  <li><a href="http://dustin.iteye.com/blog/monthblog/2011-05">2011-05</a> (1)</li>
+                
+                  <li><a href="http://dustin.iteye.com/blog/monthblog/2010-12">2010-12</a> (1)</li>
+                
+                  <li><a href="http://dustin.iteye.com/blog/monthblog/2010-10">2010-10</a> (1)</li>
+                
+                <li><a href="http://dustin.iteye.com/blog/monthblog_more">更多存档...</a></li>
+              </ul>
+            </div>
+            
+            
+
+            <div id="guest_books">
+              <h5>最新评论</h5>
+              <ul>
+                
+                <li>
+                  <a href="http://nkd2002.iteye.com/" target="_blank" title="nkd2002">nkd2002</a>： 
+                  “我们完全可以用这样一句代替它：”博主这名句话有错误，第二段代 ...<br>
+                  <a href="http://dustin.iteye.com/blog/44291#bc2348230">使用JDBC时Class.forName()的作用</a>
+                </li>
+                
+                <li>
+                  <a href="http://yanyonglin.iteye.com/" target="_blank" title="topcoder_lin">topcoder_lin</a>： 
+                  写的很好！！！！<br>
+                  <a href="http://dustin.iteye.com/blog/44291#bc2348006">使用JDBC时Class.forName()的作用</a>
+                </li>
+                
+                <li>
+                  <a href="http://ie4119.iteye.com/" target="_blank" title="ie4119">ie4119</a>： 
+                  
+
+hello world!   说的太棒了！
+
+<br>
+                  <a href="http://dustin.iteye.com/blog/44291#bc2335772">使用JDBC时Class.forName()的作用</a>
+                </li>
+                
+                <li>
+                  <a href="http://851228082.iteye.com/" target="_blank" title="851228082">851228082</a>： 
+                  写的真好，我昨天一直在思考这个问题，单单一个class.for ...<br>
+                  <a href="http://dustin.iteye.com/blog/44291#bc2335010">使用JDBC时Class.forName()的作用</a>
+                </li>
+                
+                <li>
+                  <a href="http://shhyuhan.iteye.com/" target="_blank" title="shhyuhan">shhyuhan</a>： 
+                  受教了。字数补丁<br>
+                  <a href="http://dustin.iteye.com/blog/44291#bc2283172">使用JDBC时Class.forName()的作用</a>
+                </li>
+                
+              </ul>
+            </div>
+
+            <div class="local_bottom"></div>
+          
+        </div>
+      </div>
+
+      <div id="footer" class="clearfix">
+        <div id="copyright">
+          <hr>
+          声明：ITeye文章版权属于作者，受法律保护。没有作者书面许可不得转载。若作者同意转载，必须以超链接形式标明文章原始出处和作者。<br>
+          © 2003-2014 ITeye.com.   All rights reserved.  [ 京ICP证110151号  京公网安备110105010620 ]
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+  document.write("<img src='http://stat.iteye.com/?url="+ encodeURIComponent(document.location.href) + "&referrer=" + encodeURIComponent(document.referrer) + "&user_id=' width='0' height='0' />");
+</script><img src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/saved_resource" width="0" height="0">
+
+<script src="./java动态代码的实现以及Class的卸载 - 达观.平和 - ITeye技术网站_files/tracking.js" type="text/javascript"></script>
+
+    
+    
+  
+
+</body></html>

@@ -1,0 +1,79 @@
+package org.power.dynaload.compile;
+
+import java.io.File;
+
+import org.power.dynaload.startup.Config;
+import org.power.dynaload.startup.Startup;
+import org.power.dynaload.utils.IOUtils;
+
+import com.sun.tools.javac.Main;
+
+
+/**
+ * 动态代码编译器.
+ * @author li.zhang
+ * 2014-9-12
+ *
+ */
+public final class DyncSourceCompiler
+{
+    /** conf **/
+    private Config conf = Startup.getInstance().getConfig();
+    
+    /**
+     * 编译srcFilePath目录下的代码.
+     * @param dyncodeSourcePath 编译该目录下的java源码
+     * @param dyncodeCompilePath 编译后代码存放的路径.
+     */
+    public void compile(String srcFilePath, String compilePath)
+    {
+        File srcFileDir = new File(srcFilePath);
+        if (!srcFileDir.isDirectory())
+        {
+            return;
+        }
+        
+        transval(srcFileDir);
+    }
+
+    private void transval(File srcFileDir)
+    {
+        File[] children = srcFileDir.listFiles();
+        if (null == children)
+        {
+            return;
+        }
+        
+        for (int i = 0; i < children.length; i++)
+        {
+            File child = children[i];
+            if (child.isDirectory())
+            {
+                transval(child);
+            }
+            else 
+            {
+                if (child.isFile() && child.getName().endsWith(".java"))
+                {
+                    doCompile(child);
+                }
+            }
+        }
+    }
+
+    private void doCompile(File child)
+    {
+        String dyncodePath = conf.getDyncodePath();
+        String dyncodeCompilePath = conf.getDyncodeCompilePath();
+        
+        
+        String outputDir = IOUtils.getRelativePath(child, new File(dyncodePath));
+        File dir = new File(dyncodeCompilePath, outputDir);
+        if (!dir.exists())
+        {
+            dir.mkdirs();
+        }
+        
+        Main.compile(new String[]{"-d", dir.getAbsolutePath(), child.getAbsolutePath()});
+    }
+}

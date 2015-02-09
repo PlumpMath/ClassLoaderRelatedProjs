@@ -1,0 +1,96 @@
+package org.power.dynaload.startup;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+
+import org.power.dynaload.registry.ServiceRegistry;
+
+/**
+ * 启动类.
+ * @author li.zhang
+ * 2014-9-12
+ *
+ */
+public class Startup
+{
+    /** 配置信息. **/
+    private Config config;
+    
+    /**
+     * 系统启动.
+     * @throws IOException 
+     */
+    public void start() throws IOException
+    {
+        //1.加载启动配置.
+        initConfig();
+        
+        //2.创建代码动态加载的树图.
+        loadDyncServcies();
+    }
+
+    /**
+     * 初始化配置.
+     */
+    private void initConfig()
+    {
+        Config conf = new Config();
+        conf.setDyncodePath("dyncode");//默认,dyncode目录下的代码是支持动态加载的.
+        
+        this.config = conf;
+    }
+
+    /**
+     * 加载动态服务.
+     * @throws IOException 
+     */
+    private void loadDyncServcies() throws IOException
+    {
+        String dyncodePath = this.config.getDyncodePath();
+        File dyncodeDir = new File(dyncodePath);
+        if (!dyncodeDir.exists() || !dyncodeDir.isDirectory())
+        {
+            return;
+        }
+        
+        transvalDirectory(dyncodeDir);
+    }
+
+    /**
+     * 遍历目录.
+     * @param dir dir
+     * @throws IOException 
+     */
+    private void transvalDirectory(File dir) throws IOException
+    {
+        ServiceRegistry registry = ServiceRegistry.getInstance();
+        File[] children = dir.listFiles();
+        if (null == children || 0 == children.length)
+        {
+            return;
+        }
+        
+        for (int i = 0; i < children.length; i++)
+        {
+            File child = children[i];
+            if (child.isDirectory())
+            {
+                transvalDirectory(child);
+            }
+            else
+            {
+                if (child.isFile() && child.getName().endsWith(".java"))
+                {
+                    URL url = getClass().getProtectionDomain().getCodeSource().getLocation();
+                    System.out.println(url);
+                }
+            }
+        }
+    }
+
+    public Config getConfig()
+    {
+        return config;
+    }
+}
